@@ -46,5 +46,5 @@ export async function getDivisions() {
 }
 
 export async function updateProfile(customerId, params = {}) {
-  return apiFetch('MemberUpdate', { CustomerId: customerId, PlatformType: 2, ...params });
+  return apiFetch('MemberUpdate', { CustomerID: customerId, PlatformType: 2, ...params });
 }

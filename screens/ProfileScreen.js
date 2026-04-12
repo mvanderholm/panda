@@ -39,7 +39,6 @@ export default function ProfileScreen({ navigation }) {
   const [editLast, setEditLast] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editAddress, setEditAddress] = useState('');
-  const [editAddress2, setEditAddress2] = useState('');
   const [editCity, setEditCity] = useState('');
   const [editState, setEditState] = useState('');
   const [editZip, setEditZip] = useState('');
@@ -81,7 +80,6 @@ export default function ProfileScreen({ navigation }) {
     setEditLast(member?.LAST || '');
     setEditPhone(member?.PHONE2 || '');
     setEditAddress(member?.ADDRESS || '');
-    setEditAddress2(member?.ADDRESS2 || '');
     setEditCity(member?.CITY || '');
     setEditState(member?.STATE || '');
     setEditZip(member?.ZIP?.trim() || '');
@@ -94,16 +92,15 @@ export default function ProfileScreen({ navigation }) {
     setSaving(true);
     try {
       await updateProfile(customerId, {
-        first: editFirst.trim(),
-        last: editLast.trim(),
-        phone: editPhone.trim(),
+        firstname: editFirst.trim(),
+        lastname: editLast.trim(),
+        Cell_Phone: editPhone.trim(),
         address: editAddress.trim(),
-        address2: editAddress2.trim(),
         city: editCity.trim(),
         state: editState.trim(),
         zip: editZip.trim(),
-        BD1_Month: editBirthMonth,
-        gender: editGender,
+        birth_month: editBirthMonth,
+        Gender: editGender,
       });
       // Refresh member data
       const data = await apiFetch('GetMemberProfile', { CustomerId: customerId, platformtype: 2 });
@@ -166,7 +163,6 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.sectionTitle}>Contact</Text>
                 <TextInput style={styles.input} value={editPhone} onChangeText={setEditPhone} placeholder="Phone" keyboardType="phone-pad" accessibilityLabel="Phone number" />
                 <TextInput style={styles.input} value={editAddress} onChangeText={setEditAddress} placeholder="Address" accessibilityLabel="Address" />
-                <TextInput style={styles.input} value={editAddress2} onChangeText={setEditAddress2} placeholder="Apt, suite (optional)" accessibilityLabel="Address line 2" />
                 <TextInput style={styles.input} value={editCity} onChangeText={setEditCity} placeholder="City" accessibilityLabel="City" />
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <TextInput style={[styles.input, { width: 70 }]} value={editState} onChangeText={setEditState} placeholder="ST" autoCapitalize="characters" maxLength={2} accessibilityLabel="State" />
