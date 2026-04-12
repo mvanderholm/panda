@@ -44,3 +44,7 @@ export async function forgotPassword(email) {
 export async function getDivisions() {
   return apiFetch('GetDivisionList', { PlatformType: 2 });
 }
+
+export async function updateProfile(customerId, params = {}) {
+  return apiFetch('MemberUpdate', { CustomerId: customerId, PlatformType: 2, ...params });
+}

@@ -5,8 +5,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch, getDivisions } from '../api';
+import { useAuth } from '../AuthContext';
 
 export default function MerchantsScreen({ navigation }) {
+  const { marketId } = useAuth();
   const [merchants, setMerchants] = useState([]);
   const [divisions, setDivisions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ export default function MerchantsScreen({ navigation }) {
 
   useEffect(() => {
     Promise.all([
-      apiFetch('MerchantListing', { sMarket: 1 }),
+      apiFetch('MerchantListing', { sMarket: marketId }),
       getDivisions(),
     ])
       .then(([merchantData, divisionData]) => {

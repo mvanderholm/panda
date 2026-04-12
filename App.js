@@ -8,10 +8,10 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import LoginScreen from './screens/LoginScreen';
 import EnrollmentScreen from './screens/EnrollmentScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
+import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
 import HomeScreen from './screens/HomeScreen';
 import MerchantsScreen from './screens/MerchantsScreen';
 import MerchantDetailScreen from './screens/MerchantDetailScreen';
-import MapScreen from './screens/MapScreen';
 import RewardsScreen from './screens/RewardsScreen';
 import RewardDetailScreen from './screens/RewardDetailScreen';
 import RedemptionCodeScreen from './screens/RedemptionCodeScreen';
@@ -26,7 +26,6 @@ function MerchantsStack() {
     <Stack.Navigator>
       <Stack.Screen name="MerchantsList" component={MerchantsScreen} options={{ title: 'Merchants' }} />
       <Stack.Screen name="MerchantDetail" component={MerchantDetailScreen} options={{ title: 'Merchant Detail' }} />
-      <Stack.Screen name="MerchantMap" component={MapScreen} options={{ title: 'Map' }} />
     </Stack.Navigator>
   );
 }
@@ -103,12 +102,16 @@ function RootNavigator() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <Stack.Screen name="Main" component={MainTabs} />
+          <>
+            <Stack.Screen name="Main" component={MainTabs} />
+            <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} options={{ headerShown: true, title: 'Privacy Policy' }} />
+          </>
         ) : (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Enrollment" component={EnrollmentScreen} options={{ title: 'Create Account' }} />
             <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ title: 'Reset Password' }} />
+            <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} options={{ headerShown: true, title: 'Privacy Policy' }} />
           </>
         )}
       </Stack.Navigator>

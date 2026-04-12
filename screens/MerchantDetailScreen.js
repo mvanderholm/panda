@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image, TouchableOpacity, Linking, Platform } from 'react-native';
 import { apiFetch } from '../api';
 
-export default function MerchantDetailScreen({ route, navigation }) {
+export default function MerchantDetailScreen({ route }) {
   const { merchantId, name } = route.params;
   const [merchant, setMerchant] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -49,13 +49,15 @@ export default function MerchantDetailScreen({ route, navigation }) {
         </Text>
         <TouchableOpacity
           style={styles.mapLink}
-          onPress={() => navigation.navigate('MerchantMap', {
-            name: merchant.NAME,
-            address: merchant.ADDRESS,
-            city: merchant.CITY,
-            state: merchant.STATE,
-            zip: merchant.ZIP?.trim(),
-          })}
+          onPress={() => {
+            const addr = encodeURIComponent(`${merchant.ADDRESS}, ${merchant.CITY}, ${merchant.STATE} ${merchant.ZIP?.trim()}`);
+            const url = Platform.OS === 'ios'
+              ? `maps://0,0?q=${addr}`
+              : `geo:0,0?q=${addr}`;
+            Linking.openURL(url).catch(() =>
+              Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${addr}`)
+            );
+          }}
         >
           <Text style={styles.mapLinkText}>View on Map</Text>
         </TouchableOpacity>

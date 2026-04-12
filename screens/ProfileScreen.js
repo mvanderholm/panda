@@ -1,12 +1,26 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, Linking, FlatList } from 'react-native';
+import {
+  View, Text, ScrollView, StyleSheet, ActivityIndicator,
+  TouchableOpacity, Alert, Linking, FlatList, TextInput,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Constants from 'expo-constants';
 import { useAuth } from '../AuthContext';
-import { apiFetch } from '../api';
+import { apiFetch, updateProfile } from '../api';
 
 const TABS = ['Profile', 'My Points', 'Transactions', 'Contact'];
 
-export default function ProfileScreen() {
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+const GENDERS = [
+  { label: 'Male', value: 1 },
+  { label: 'Female', value: 2 },
+  { label: 'Prefer not to say', value: 0 },
+];
+
+export default function ProfileScreen({ navigation }) {
   const { customerId, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState('Profile');
@@ -17,6 +31,20 @@ export default function ProfileScreen() {
   const [pointsLoading, setPointsLoading] = useState(false);
   const [txLoading, setTxLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Edit mode state
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editFirst, setEditFirst] = useState('');
+  const [editLast, setEditLast] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editAddress2, setEditAddress2] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [editState, setEditState] = useState('');
+  const [editZip, setEditZip] = useState('');
+  const [editBirthMonth, setEditBirthMonth] = useState(0);
+  const [editGender, setEditGender] = useState(0);
 
   useEffect(() => {
     if (!customerId) return;
@@ -37,15 +65,55 @@ export default function ProfileScreen() {
     if (activeTab !== 'Transactions' || !customerId || transactions.length > 0) return;
     setTxLoading(true);
     apiFetch('RecentTransactions', { CustomerId: customerId, platformtype: 2 })
-      .then(data => { console.log('MemberTransations JSON:', JSON.stringify(data[0], null, 2)); setTransactions(data); setTxLoading(false); })
+      .then(data => { setTransactions(data); setTxLoading(false); })
       .catch(() => setTxLoading(false));
   }, [activeTab]);
 
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: logout }
+      { text: 'Sign Out', style: 'destructive', onPress: logout },
     ]);
+  };
+
+  const startEditing = () => {
+    setEditFirst(member?.FIRST || '');
+    setEditLast(member?.LAST || '');
+    setEditPhone(member?.PHONE2 || '');
+    setEditAddress(member?.ADDRESS || '');
+    setEditAddress2(member?.ADDRESS2 || '');
+    setEditCity(member?.CITY || '');
+    setEditState(member?.STATE || '');
+    setEditZip(member?.ZIP?.trim() || '');
+    setEditBirthMonth(member?.BD1_MONTH ?? 0);
+    setEditGender(member?.GENDER ?? 0);
+    setEditing(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await updateProfile(customerId, {
+        first: editFirst.trim(),
+        last: editLast.trim(),
+        phone: editPhone.trim(),
+        address: editAddress.trim(),
+        address2: editAddress2.trim(),
+        city: editCity.trim(),
+        state: editState.trim(),
+        zip: editZip.trim(),
+        BD1_Month: editBirthMonth,
+        gender: editGender,
+      });
+      // Refresh member data
+      const data = await apiFetch('GetMemberProfile', { CustomerId: customerId, platformtype: 2 });
+      setMember(data[0]);
+      setEditing(false);
+    } catch (err) {
+      Alert.alert('Save failed', err.message || 'Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) return (
@@ -60,12 +128,14 @@ export default function ProfileScreen() {
     </View>
   );
 
-return (
+  const appVersion = Constants.expoConfig?.version ?? '—';
+
+  return (
     <View style={styles.container}>
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-<Text style={styles.name}>{member?.FIRST} {member?.LAST}</Text>
+        <Text style={styles.name}>{member?.FIRST} {member?.LAST}</Text>
       </View>
 
       {/* Tabs */}
@@ -74,60 +144,125 @@ return (
           <TouchableOpacity
             key={tab}
             style={[styles.tabItem, activeTab === tab && styles.tabItemActive]}
-            onPress={() => setActiveTab(tab)}
+            onPress={() => { setActiveTab(tab); setEditing(false); }}
           >
             <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Tab Content */}
+      {/* Profile tab */}
       {activeTab === 'Profile' && (
         <ScrollView style={styles.tabContent}>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Contact Information</Text>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Phone</Text>
-              <Text style={styles.value}>{member?.PHONE2}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Address</Text>
-              <Text style={styles.value}>{member?.ADDRESS}{'\n'}{member?.CITY}, {member?.STATE} {member?.ZIP}</Text>
-            </View>
-          </View>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Personal Information</Text>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Gender</Text>
-              <Text style={styles.value}>{member?.GENDER_DESC}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Birth Month</Text>
-              <Text style={styles.value}>{member?.BIRTH_MONTH_DESC?.trim()}</Text>
-            </View>
-            {member?.WEDDING_MONTH > 0 && (
-              <View style={styles.infoRow}>
-                <Text style={styles.label}>Anniversary</Text>
-                <Text style={styles.value}>{member?.WEDDING_MONTH_DESC?.trim()}</Text>
+          {editing ? (
+            <>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Name</Text>
+                <TextInput style={styles.input} value={editFirst} onChangeText={setEditFirst} placeholder="First name" accessibilityLabel="First name" />
+                <TextInput style={styles.input} value={editLast} onChangeText={setEditLast} placeholder="Last name" accessibilityLabel="Last name" />
               </View>
-            )}
-          </View>
-          <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
-            <Text style={styles.signOutText}>Sign Out</Text>
-          </TouchableOpacity>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Contact</Text>
+                <TextInput style={styles.input} value={editPhone} onChangeText={setEditPhone} placeholder="Phone" keyboardType="phone-pad" accessibilityLabel="Phone number" />
+                <TextInput style={styles.input} value={editAddress} onChangeText={setEditAddress} placeholder="Address" accessibilityLabel="Address" />
+                <TextInput style={styles.input} value={editAddress2} onChangeText={setEditAddress2} placeholder="Apt, suite (optional)" accessibilityLabel="Address line 2" />
+                <TextInput style={styles.input} value={editCity} onChangeText={setEditCity} placeholder="City" accessibilityLabel="City" />
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TextInput style={[styles.input, { width: 70 }]} value={editState} onChangeText={setEditState} placeholder="ST" autoCapitalize="characters" maxLength={2} accessibilityLabel="State" />
+                  <TextInput style={[styles.input, { flex: 1 }]} value={editZip} onChangeText={setEditZip} placeholder="ZIP" keyboardType="number-pad" accessibilityLabel="ZIP code" />
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Birth Month (optional)</Text>
+                <View style={styles.chipGrid}>
+                  {MONTHS.map((m, i) => (
+                    <TouchableOpacity
+                      key={m}
+                      style={[styles.chip, editBirthMonth === i + 1 && styles.chipActive]}
+                      onPress={() => setEditBirthMonth(editBirthMonth === i + 1 ? 0 : i + 1)}
+                    >
+                      <Text style={[styles.chipText, editBirthMonth === i + 1 && styles.chipTextActive]}>{m.slice(0, 3)}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Gender (optional)</Text>
+                <View style={styles.chipRow}>
+                  {GENDERS.map(g => (
+                    <TouchableOpacity
+                      key={g.value}
+                      style={[styles.chip, editGender === g.value && styles.chipActive]}
+                      onPress={() => setEditGender(g.value)}
+                    >
+                      <Text style={[styles.chipText, editGender === g.value && styles.chipTextActive]}>{g.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={{ flexDirection: 'row', gap: 10, margin: 16 }}>
+                <TouchableOpacity style={[styles.actionBtn, styles.cancelBtn]} onPress={() => setEditing(false)}>
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.actionBtn, styles.saveBtn, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
+                  {saving ? <ActivityIndicator color="white" /> : <Text style={styles.saveBtnText}>Save Changes</Text>}
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Contact Information</Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Phone</Text>
+                  <Text style={styles.value}>{member?.PHONE2}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Address</Text>
+                  <Text style={styles.value}>{member?.ADDRESS}{'\n'}{member?.CITY}, {member?.STATE} {member?.ZIP}</Text>
+                </View>
+              </View>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Personal Information</Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Gender</Text>
+                  <Text style={styles.value}>{member?.GENDER_DESC}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Birth Month</Text>
+                  <Text style={styles.value}>{member?.BIRTH_MONTH_DESC?.trim()}</Text>
+                </View>
+                {member?.WEDDING_MONTH > 0 && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.label}>Anniversary</Text>
+                    <Text style={styles.value}>{member?.WEDDING_MONTH_DESC?.trim()}</Text>
+                  </View>
+                )}
+              </View>
+              <TouchableOpacity style={styles.editBtn} onPress={startEditing}>
+                <Text style={styles.editBtnText}>Edit Profile</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+                <Text style={styles.signOutText}>Sign Out</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </ScrollView>
       )}
 
+      {/* My Points tab */}
       {activeTab === 'My Points' && (
         <View style={styles.tabContent}>
           {pointsLoading ? (
-            <View style={styles.centered}>
-              <ActivityIndicator size="large" color="#1a73e8" />
-            </View>
+            <View style={styles.centered}><ActivityIndicator size="large" color="#1a73e8" /></View>
           ) : (
             <FlatList
               data={points}
-              keyExtractor={(item, index) => index.toString()}
+              keyExtractor={(_, index) => index.toString()}
               contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
               renderItem={({ item }) => (
                 <View style={styles.pointsCard}>
@@ -147,16 +282,15 @@ return (
         </View>
       )}
 
+      {/* Transactions tab */}
       {activeTab === 'Transactions' && (
         <View style={styles.tabContent}>
           {txLoading ? (
-            <View style={styles.centered}>
-              <ActivityIndicator size="large" color="#1a73e8" />
-            </View>
+            <View style={styles.centered}><ActivityIndicator size="large" color="#1a73e8" /></View>
           ) : (
             <FlatList
               data={transactions}
-              keyExtractor={(item, index) => index.toString()}
+              keyExtractor={(_, index) => index.toString()}
               contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
               renderItem={({ item }) => (
                 <View style={styles.txCard}>
@@ -175,6 +309,7 @@ return (
         </View>
       )}
 
+      {/* Contact tab */}
       {activeTab === 'Contact' && (
         <ScrollView style={styles.tabContent} contentContainerStyle={{ padding: 16 }}>
           <View style={styles.section}>
@@ -184,8 +319,14 @@ return (
             </TouchableOpacity>
           </View>
           <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Legal</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
+              <Text style={styles.contactLink}>Privacy Policy</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>App Version</Text>
-            <Text style={styles.value}>PinPoint 5.0.0</Text>
+            <Text style={styles.value}>PinPoint {appVersion}</Text>
           </View>
         </ScrollView>
       )}
@@ -200,17 +341,13 @@ const styles = StyleSheet.create({
   error: { color: 'red' },
 
   header: { backgroundColor: '#ffffff', paddingHorizontal: 28, paddingBottom: 28, paddingTop: 16, alignItems: 'center' },
-  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#1a73e8', justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  avatarText: { color: 'white', fontSize: 22, fontWeight: '700' },
   name: { fontSize: 20, fontWeight: '700', color: '#1a2a4a', marginBottom: 2 },
-  email: { fontSize: 13, color: 'rgba(255,255,255,0.65)' },
 
   tabBar: { flexDirection: 'row', backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#eee' },
   tabItem: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabItemActive: { borderBottomColor: '#1a73e8' },
   tabText: { fontSize: 11, fontWeight: '600', color: '#888', textTransform: 'uppercase', letterSpacing: 0.4 },
   tabTextActive: { color: '#1a73e8' },
-
   tabContent: { flex: 1 },
 
   section: { backgroundColor: 'white', padding: 16, marginBottom: 8, marginTop: 8 },
@@ -219,8 +356,27 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, color: '#888', width: 110, textTransform: 'uppercase', letterSpacing: 0.5 },
   value: { fontSize: 14, color: '#333', flex: 1 },
 
-  signOutBtn: { margin: 16, padding: 16, backgroundColor: 'white', borderRadius: 10, alignItems: 'center', borderWidth: 1.5, borderColor: '#e53935' },
+  input: {
+    borderWidth: 1.5, borderColor: '#e0e0e0', borderRadius: 8,
+    padding: 11, marginBottom: 10, fontSize: 15, backgroundColor: '#fff',
+  },
+  chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: 20, backgroundColor: '#e8edf5' },
+  chipActive: { backgroundColor: '#1a73e8' },
+  chipText: { fontSize: 13, fontWeight: '600', color: '#555' },
+  chipTextActive: { color: '#fff' },
+
+  editBtn: { margin: 16, padding: 14, backgroundColor: 'white', borderRadius: 10, alignItems: 'center', borderWidth: 1.5, borderColor: '#1a73e8' },
+  editBtnText: { color: '#1a73e8', fontWeight: '600', fontSize: 16 },
+  signOutBtn: { marginHorizontal: 16, marginBottom: 16, padding: 16, backgroundColor: 'white', borderRadius: 10, alignItems: 'center', borderWidth: 1.5, borderColor: '#e53935' },
   signOutText: { color: '#e53935', fontWeight: '600', fontSize: 16 },
+
+  actionBtn: { flex: 1, padding: 14, borderRadius: 10, alignItems: 'center' },
+  cancelBtn: { backgroundColor: 'white', borderWidth: 1.5, borderColor: '#ccc' },
+  cancelBtnText: { color: '#555', fontWeight: '600', fontSize: 15 },
+  saveBtn: { backgroundColor: '#1a73e8' },
+  saveBtnText: { color: 'white', fontWeight: '600', fontSize: 15 },
 
   pointsCard: { backgroundColor: 'white', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#e8e8e8' },
   pointsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
