@@ -7,6 +7,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 
 import LoginScreen from './screens/LoginScreen';
 import EnrollmentScreen from './screens/EnrollmentScreen';
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import HomeScreen from './screens/HomeScreen';
 import MerchantsScreen from './screens/MerchantsScreen';
 import MerchantDetailScreen from './screens/MerchantDetailScreen';
@@ -107,6 +108,7 @@ function RootNavigator() {
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Enrollment" component={EnrollmentScreen} options={{ title: 'Create Account' }} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ title: 'Reset Password' }} />
           </>
         )}
       </Stack.Navigator>

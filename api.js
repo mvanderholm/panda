@@ -32,3 +32,15 @@ export async function getMemberProfile(customerId) {
   if (!id || isNaN(id)) throw new Error('Invalid customer ID');
   return apiFetch('GetMemberProfile', { CustomerID: id, platformtype: 2, returnformat: 'json' });
 }
+
+export async function enrollMember(params = {}) {
+  return apiFetch('MemberEnrollment', params);
+}
+
+export async function forgotPassword(email) {
+  return apiFetch('ForgotPassword', { email: email.trim(), PlatformType: 2 });
+}
+
+export async function getDivisions() {
+  return apiFetch('GetDivisionList', { PlatformType: 2 });
+}
