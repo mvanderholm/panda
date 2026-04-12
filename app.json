@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "panda-mobile",
-    "slug": "panda-mobile",
+    "name": "PinPoint",
+    "slug": "pinpoint",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

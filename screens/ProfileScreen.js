@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, Linking, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
 import { useAuth } from '../AuthContext';
 import { apiFetch } from '../api';
 
 const TABS = ['Profile', 'My Points', 'Transactions', 'Contact'];
 
 export default function ProfileScreen() {
-  const { customerId } = useAuth();
+  const { customerId, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState('Profile');
   const [member, setMember] = useState(null);
@@ -46,7 +44,7 @@ export default function ProfileScreen() {
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => signOut(auth) }
+      { text: 'Sign Out', style: 'destructive', onPress: logout }
     ]);
   };
 
