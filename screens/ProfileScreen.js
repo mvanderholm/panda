@@ -91,7 +91,7 @@ export default function ProfileScreen({ navigation }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateProfile(customerId, {
+      const params = {
         firstname: editFirst.trim(),
         lastname: editLast.trim(),
         Cell_Phone: editPhone.trim(),
@@ -99,9 +99,13 @@ export default function ProfileScreen({ navigation }) {
         city: editCity.trim(),
         state: editState.trim(),
         zip: editZip.trim(),
-        birth_month: editBirthMonth,
-        Gender: editGender,
-      });
+      };
+      // Only send optional numeric fields when they carry a real value
+      if (editBirthMonth > 0) params.birth_month = editBirthMonth;
+      // Gender is xs:string in the WSDL — send as string representation
+      if (editGender !== null && editGender !== undefined) params.Gender = String(editGender);
+
+      await updateProfile(customerId, params);
       // Refresh member data
       const data = await apiFetch('GetMemberProfile', { CustomerId: customerId, platformtype: 2 });
       setMember(data[0]);
