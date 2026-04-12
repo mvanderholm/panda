@@ -20,7 +20,7 @@ export default function MyCardScreen() {
         const profile = Array.isArray(result) ? result[0] : result;
         setCardNumber(profile?.CARD_NUMBER ? String(profile.CARD_NUMBER) : null);
       })
-      .catch(err => { console.error('GetMemberProfile error:', err); setCardNumber(null); })
+      .catch(() => { setCardNumber(null); })
       .finally(() => setLoading(false));
   }, [customerId]);
 
