@@ -243,9 +243,6 @@ export default function ProfileScreen({ navigation }) {
                   </View>
                 )}
               </View>
-              <TouchableOpacity style={styles.editBtn} onPress={startEditing}>
-                <Text style={styles.editBtnText}>Edit Profile</Text>
-              </TouchableOpacity>
               <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
                 <Text style={styles.signOutText}>Sign Out</Text>
               </TouchableOpacity>
