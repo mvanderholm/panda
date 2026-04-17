@@ -2,6 +2,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Platform } from '
 import { Ionicons } from '@expo/vector-icons';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { navigationRef } from '../App';
+import WebFooter from '../components/WebFooter';
 
 function nav(screen) {
   if (navigationRef.isReady()) navigationRef.navigate(screen);
@@ -120,10 +121,7 @@ export default function LearnMoreScreen({ navigation }) {
         </View>
       </View>
 
-      {/* ── Footer ── */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>© 2026 PinPointRewards.com. All rights reserved.</Text>
-      </View>
+      <WebFooter />
 
     </ScrollView>
   );
@@ -194,6 +192,4 @@ const styles = StyleSheet.create({
   ctaSecondary: { borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 10 },
   ctaSecondaryText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 
-  footer: { backgroundColor: NAVY, paddingVertical: 28, alignItems: 'center' },
-  footerText: { color: 'rgba(255,255,255,0.4)', fontSize: 13 },
 });

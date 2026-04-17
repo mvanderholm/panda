@@ -2,6 +2,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, Platform }
 import { Ionicons } from '@expo/vector-icons';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { navigationRef } from '../App';
+import WebFooter from '../components/WebFooter';
 
 function nav(screen) {
   if (navigationRef.isReady()) navigationRef.navigate(screen);
@@ -144,21 +145,7 @@ export default function LandingScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* ── Footer ── */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>© 2026 PinPointRewards.com. All rights reserved.</Text>
-        <View style={styles.footerLinks}>
-          <TouchableOpacity onPress={() => goTo('LearnMore')}><Text style={styles.footerLink}>Learn More</Text></TouchableOpacity>
-          <Text style={styles.footerDot}>·</Text>
-          <TouchableOpacity onPress={() => goTo('FindMerchants')}><Text style={styles.footerLink}>Find Merchants</Text></TouchableOpacity>
-          <Text style={styles.footerDot}>·</Text>
-          <TouchableOpacity onPress={() => goTo('FAQ')}><Text style={styles.footerLink}>FAQ</Text></TouchableOpacity>
-          <Text style={styles.footerDot}>·</Text>
-          <TouchableOpacity onPress={() => goTo('Contact')}><Text style={styles.footerLink}>Contact</Text></TouchableOpacity>
-          <Text style={styles.footerDot}>·</Text>
-          <TouchableOpacity onPress={() => goTo('PrivacyPolicy')}><Text style={styles.footerLink}>Privacy Policy</Text></TouchableOpacity>
-        </View>
-      </View>
+      <WebFooter />
 
     </ScrollView>
   );
@@ -403,16 +390,4 @@ const styles = StyleSheet.create({
   },
   learnMoreLink: { color: 'rgba(255,255,255,0.8)', fontSize: 15, fontWeight: '600' },
 
-  // Footer
-  footer: {
-    backgroundColor: NAVY,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    gap: 12,
-  },
-  footerText: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },
-  footerLinks: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
-  footerLink: { color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: '500' },
-  footerDot: { color: 'rgba(255,255,255,0.3)', fontSize: 13 },
 });

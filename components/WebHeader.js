@@ -8,7 +8,6 @@ const UNAUTH_ACTIVE_MAP = {
   LearnMore:      'learn',
   FindMerchants:  'merchants',
   MerchantDetail: 'merchants',
-  FAQ:            'faq',
   Contact:        'contact',
   Login:          'login',
   Enrollment:     'enroll',
@@ -91,7 +90,6 @@ export default function WebHeader({ currentRoute }) {
             <>
               <NavLink label="Learn More"     active={activeKey === 'learn'}     onPress={() => nav('LearnMore')} />
               <NavLink label="Find Merchants" active={activeKey === 'merchants'} onPress={() => nav('FindMerchants')} />
-              <NavLink label="FAQ"            active={activeKey === 'faq'}       onPress={() => nav('FAQ')} />
               <NavLink label="Contact"        active={activeKey === 'contact'}   onPress={() => nav('Contact')} />
             </>
           )}
