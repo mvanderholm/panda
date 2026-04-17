@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { enrollMember } from '../api';
 import analytics from '../analytics';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -45,6 +46,8 @@ function digitsOnly(value) {
 }
 
 export default function EnrollmentScreen({ navigation }) {
+  const { isWide } = useBreakpoint();
+
   useEffect(() => {
     analytics.track('SignupStarted');
   }, []);
@@ -205,6 +208,7 @@ export default function EnrollmentScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <View style={[styles.innerWrap, isWide && styles.innerWrapWide]}>
 
         {/* Progress dots */}
         <View style={styles.progressRow} accessibilityLabel={`Step ${step} of 3`}>
@@ -437,7 +441,7 @@ export default function EnrollmentScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.navigate('Login')} accessibilityRole="link">
           <Text style={styles.signinLink}>Already have an account? Sign in</Text>
         </TouchableOpacity>
-
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -449,6 +453,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#f4f6f9',
     padding: 24,
     paddingTop: 60,
+    alignItems: 'stretch',
+  },
+  innerWrap: {
+    flex: 1,
+  },
+  innerWrapWide: {
+    maxWidth: 560,
+    alignSelf: 'center',
+    width: '100%',
   },
   progressRow: {
     flexDirection: 'row',

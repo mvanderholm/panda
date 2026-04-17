@@ -1,10 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
-import Barcode from '@kichiyaki/react-native-barcode-generator';
 import QRCode from 'react-native-qrcode-svg';
+import BarcodeDisplay from '../components/BarcodeDisplay';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 
 export default function RedemptionCodeScreen({ route }) {
   const { reward } = route.params;
+  const { isWide } = useBreakpoint();
   const [mode, setMode] = useState('barcode');
   const codeValue = String(reward.DETAIL_ID).replace(/\D/g, '');
 
@@ -13,17 +15,16 @@ export default function RedemptionCodeScreen({ route }) {
       <Text style={styles.merchantName}>{reward.NAME}</Text>
       <Text style={styles.offer}>{reward.OFFER}</Text>
 
-      <View style={styles.barcodeCard}>
+      <View style={[styles.barcodeCard, isWide && styles.barcodeCardWide]}>
         {mode === 'barcode' ? (
-          <Barcode
+          <BarcodeDisplay
             value={codeValue}
-            format="CODE128"
             width={2}
             height={80}
-            maxWidth={280}
+            maxWidth={isWide ? 400 : 280}
           />
         ) : (
-          <QRCode value={codeValue} size={180} />
+          <QRCode value={codeValue} size={isWide ? 220 : 180} />
         )}
         <Text style={styles.detailId}>ID: {reward.DETAIL_ID}</Text>
       </View>
@@ -81,6 +82,9 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
   },
+  barcodeCardWide: {
+    maxWidth: 520,
+  },
   detailId: {
     fontSize: 13,
     color: '#aaa',
@@ -94,11 +98,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 4,
   },
-  toggleBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
+  toggleBtn: { paddingVertical: 8, paddingHorizontal: 24, borderRadius: 8 },
   toggleBtnActive: {
     backgroundColor: '#ffffff',
     shadowColor: '#000',
@@ -107,19 +107,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  toggleText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#888',
-  },
-  toggleTextActive: {
-    color: '#1a2a4a',
-  },
+  toggleText: { fontSize: 13, fontWeight: '600', color: '#888' },
+  toggleTextActive: { color: '#1a2a4a' },
   hint: {
     marginTop: 24,
     fontSize: 13,
     color: '#888',
     textAlign: 'center',
     lineHeight: 20,
+    maxWidth: 320,
   },
 });

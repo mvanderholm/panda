@@ -1,6 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useWindowDimensions } from 'react-native';
 import { AuthProvider, useAuth } from './AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -42,13 +43,27 @@ function RewardsStack() {
 
 function MainTabs() {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isWide = width >= 768;
+
   return (
     <Tab.Navigator
+      tabBarPosition={isWide ? 'left' : 'bottom'}
       screenOptions={{
         tabBarActiveTintColor: '#1a73e8',
         tabBarInactiveTintColor: '#888',
         headerShown: false,
-        tabBarStyle: {
+        tabBarStyle: isWide ? {
+          width: 220,
+          paddingTop: 24,
+          paddingBottom: 24,
+          backgroundColor: '#ffffff',
+          borderRightWidth: 1,
+          borderRightColor: '#e8e8e8',
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+        } : {
           backgroundColor: '#ffffff',
           borderTopWidth: 0,
           elevation: 12,
@@ -61,10 +76,16 @@ function MainTabs() {
           paddingTop: 6,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: isWide ? 14 : 11,
           fontWeight: '600',
           letterSpacing: 0.3,
         },
+        tabBarItemStyle: isWide ? {
+          justifyContent: 'flex-start',
+          paddingLeft: 20,
+          paddingVertical: 8,
+          height: 52,
+        } : {},
       }}
     >
       <Tab.Screen
