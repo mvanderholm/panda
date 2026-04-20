@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch, getMemberProfile } from './api';
 import { recordError, setUserId } from './crashlytics';
+import analytics from './analytics';
 
 // --- Firebase (disabled) ---
 // import { onAuthStateChanged } from 'firebase/auth';
@@ -55,6 +56,8 @@ export function AuthProvider({ children }) {
     setCustomerId(id);
     setMarketId(market);
     setUserId(String(id));
+    analytics.setUser(id);
+    analytics.track('login');
 
     // const token = await registerForPushNotifications();
     // if (token && id) {
