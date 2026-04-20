@@ -65,11 +65,11 @@ export default function ContactScreen({ navigation }) {
             </View>
             <Text style={styles.cardTitle}>Our Office</Text>
             <Text style={styles.cardBody}>
-              14222 Hillsdale Circle{'\n'}Omaha, NE 68137
+              3435 S. 161st Circle{'\n'}Omaha, NE 68130
             </Text>
             <TouchableOpacity
               style={styles.cardLink}
-              onPress={() => Linking.openURL('https://www.google.com/maps/search/?api=1&query=14222+Hillsdale+Circle+Omaha+NE+68137')}
+              onPress={() => Linking.openURL('https://www.google.com/maps/search/?api=1&query=3435+S+161st+Circle+Omaha+NE+68130')}
             >
               <Text style={styles.cardLinkText}>View on Map</Text>
               <Ionicons name="arrow-forward" size={14} color="#1a73e8" />

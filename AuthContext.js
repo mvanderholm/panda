@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiFetch, getMemberProfile } from './api';
+import { recordError, setUserId } from './crashlytics';
 
 // --- Firebase (disabled) ---
 // import { onAuthStateChanged } from 'firebase/auth';
@@ -28,7 +29,7 @@ export function AuthProvider({ children }) {
           if (session.marketId) setMarketId(session.marketId);
         }
       })
-      .catch(err => console.error('Session restore error:', err))
+      .catch(err => recordError(err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -53,6 +54,7 @@ export function AuthProvider({ children }) {
     setUser(email);
     setCustomerId(id);
     setMarketId(market);
+    setUserId(String(id));
 
     // const token = await registerForPushNotifications();
     // if (token && id) {

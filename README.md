@@ -99,7 +99,11 @@ npm run web
 
 ## Android Package
 
-`com.anonymous.pandamobile`
+| Field | Value |
+|---|---|
+| Package name | `com.pinpointrewards.mobile` |
+| Unique identifier | `CENE5MPHVFP3MAAAAAAAAAAAAA` |
+| SHA-1 certificate fingerprint | `06:C4:BC:73:8C:A1:5B:B1:73:89:2D:AA:D1:79:18:30:EA:35:7E:F9:DC:2E:D8:39:30:E0:29:65:26:19:62:DE` |
 
 ---
 

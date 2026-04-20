@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { Component, useState } from 'react';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform, View } from 'react-native';
 import { AuthProvider, useAuth } from './AuthContext';
+import { recordError } from './crashlytics';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBreakpoint } from './hooks/useBreakpoint';
@@ -28,6 +29,15 @@ import ContactScreen from './screens/ContactScreen';
 import WebHeader from './components/WebHeader';
 
 export const navigationRef = createNavigationContainerRef();
+
+class ErrorBoundary extends Component {
+  componentDidCatch(error) {
+    recordError(error);
+  }
+  render() {
+    return this.props.children;
+  }
+}
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -128,6 +138,9 @@ function AuthGatedNavigator() {
         // ── Authenticated ────────────────────────────────────────────────
         <>
           <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen name="LearnMore" component={LearnMoreScreen} />
+          <Stack.Screen name="Contact" component={ContactScreen} />
+          <Stack.Screen name="FAQ" component={FAQScreen} />
           <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen}
             options={{ headerShown: true, title: 'Privacy Policy' }} />
         </>
@@ -192,10 +205,12 @@ function AppInner() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <AppInner />
-      </AuthProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <AppInner />
+        </AuthProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }

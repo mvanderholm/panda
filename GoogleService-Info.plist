@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>806867445947-4t1plrriltn7dtld0k2a8u0vslg2et22.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.806867445947-4t1plrriltn7dtld0k2a8u0vslg2et22</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAfFtxAr2AtRU79VCSg10smFL0Wc5bdSH4</string>
+	<key>GCM_SENDER_ID</key>
+	<string>806867445947</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.pinpointrewards.mobile</string>
+	<key>PROJECT_ID</key>
+	<string>panda-mcv</string>
+	<key>STORAGE_BUCKET</key>
+	<string>panda-mcv.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:806867445947:ios:23f29575991e79b8b1a19e</string>
+</dict>
+</plist>

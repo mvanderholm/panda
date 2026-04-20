@@ -30,6 +30,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      "./plugins/withAdiRegistration",
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics"
+    ],
     "extra": {
       "eas": {
         "projectId": "75879048-ed9b-4a48-973f-26666091e074"

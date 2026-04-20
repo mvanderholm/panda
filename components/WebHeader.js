@@ -26,6 +26,9 @@ const AUTH_ACTIVE_MAP = {
   RewardDetail:   'rewards',
   RedemptionCode: 'rewards',
   Profile:        'profile',
+  LearnMore:      'learn',
+  Contact:        'contact',
+  FAQ:            'faq',
 };
 
 function NavLink({ label, active, onPress }) {
@@ -84,6 +87,8 @@ export default function WebHeader({ currentRoute }) {
               <NavLink label="My Card"    active={activeKey === 'card'}     onPress={() => nav('My Card')} />
               <NavLink label="My Rewards" active={activeKey === 'rewards'}  onPress={() => nav('My Rewards')} />
               <NavLink label="Profile"    active={activeKey === 'profile'}  onPress={() => nav('Profile')} />
+              <NavLink label="Learn More" active={activeKey === 'learn'}    onPress={() => nav('LearnMore')} />
+              <NavLink label="Contact"    active={activeKey === 'contact'}  onPress={() => nav('Contact')} />
             </>
           ) : (
             // ── Unauthenticated nav ────────────────────────────────────────

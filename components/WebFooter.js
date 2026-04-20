@@ -93,7 +93,9 @@ export default function WebFooter() {
 
 const styles = StyleSheet.create({
   footer: {
-    backgroundColor: '#1a2a4a',
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#e8e8e8',
     paddingVertical: 48,
     paddingHorizontal: 24,
   },
@@ -124,27 +126,27 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.65)',
+    color: '#666',
     lineHeight: 20,
     marginBottom: 4,
   },
   copy: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.35)',
+    color: '#999',
     lineHeight: 18,
   },
 
   colHeading: {
     fontSize: 12,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.5)',
+    color: '#aaa',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   link: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.75)',
+    color: '#444',
     lineHeight: 26,
   },
 
@@ -157,7 +159,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#f4f6f9',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -166,7 +168,7 @@ const styles = StyleSheet.create({
   },
   socialLabel: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.75)',
+    color: '#444',
     lineHeight: 24,
   },
 });

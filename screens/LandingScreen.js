@@ -138,7 +138,7 @@ export default function LandingScreen({ navigation }) {
           It's free, it's easy, and the rewards just keep coming.
         </Text>
         <TouchableOpacity style={styles.ctaPrimaryLarge} onPress={() => goTo('Enrollment')}>
-          <Text style={styles.ctaPrimaryText}>Become a PinPoint Member</Text>
+          <Text style={styles.ctaPrimaryLargeText}>Become a PinPoint Member</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => goTo('LearnMore')}>
           <Text style={styles.learnMoreLink}>Learn more about the program →</Text>
@@ -388,6 +388,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 16,
   },
+  ctaPrimaryLargeText: { color: '#7DC243', fontWeight: '700', fontSize: 16 },
   learnMoreLink: { color: 'rgba(255,255,255,0.8)', fontSize: 15, fontWeight: '600' },
 
 });
