@@ -27,7 +27,9 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.pinpointrewards.mobile",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResourcesInReleaseBuilds": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,7 +37,6 @@
     "plugins": [
       "./plugins/withAdiRegistration",
       "@react-native-firebase/app",
-      "@react-native-firebase/analytics",
       "@react-native-firebase/crashlytics"
     ],
     "extra": {

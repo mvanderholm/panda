@@ -4,7 +4,7 @@ import { apiFetch } from '../api';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 export default function MerchantDetailScreen({ route }) {
-  const { merchantId } = route.params;
+  const { merchantId, doublePoints } = route.params;
   const { isWide } = useBreakpoint();
   const [merchant, setMerchant] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -59,6 +59,12 @@ export default function MerchantDetailScreen({ route }) {
     merchant.R_PERK
       ? { label: 'Payback Reward', text: merchant.R_PERK, style: styles.perkCardPayback }
       : null,
+    merchant.B_PERK
+      ? { label: 'Birthday Reward', text: merchant.B_PERK, style: styles.perkCardBirthday }
+      : null,
+    merchant.A_PERK
+      ? { label: 'Anniversary Reward', text: merchant.A_PERK, style: styles.perkCardAnniversary }
+      : null,
     merchant.D_PERK && merchant.D_PERK !== 'none offered'
       ? { label: 'Discount', text: merchant.D_PERK, style: styles.perkCard }
       : null,
@@ -84,6 +90,9 @@ export default function MerchantDetailScreen({ route }) {
               <TouchableOpacity style={styles.mapLink} onPress={openMap}>
                 <Text style={styles.mapLinkText}>View on Map ↗</Text>
               </TouchableOpacity>
+              {doublePoints === 1 && (
+                <Image source={require('../assets/BP2X.png')} style={styles.doubleBadge} resizeMode="contain" title="Double Points" />
+              )}
             </View>
 
             {merchant.MERCHANT_DESCRIPTION && (
@@ -131,6 +140,9 @@ export default function MerchantDetailScreen({ route }) {
             <TouchableOpacity style={styles.mapLink} onPress={openMap}>
               <Text style={styles.mapLinkText}>View on Map</Text>
             </TouchableOpacity>
+            {doublePoints === 1 && (
+              <Image source={require('../assets/BP2X.png')} style={styles.doubleBadge} resizeMode="contain" title="Double Points" />
+            )}
           </View>
 
           {merchant.MERCHANT_DESCRIPTION && (
@@ -224,14 +236,23 @@ const styles = StyleSheet.create({
   perkCard: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#e8f5e9',
+    backgroundColor: '#ebf5e3',
     borderWidth: 1,
-    borderColor: '#c8e6c9',
+    borderColor: '#d8edc7',
     marginBottom: 8,
   },
-  perkCardWelcome: { backgroundColor: '#e3f2fd', borderColor: '#bbdefb' },
-  perkCardPayback: { backgroundColor: '#fff8e1', borderColor: '#ffecb3' },
+  perkCardWelcome: { backgroundColor: '#ebf5e3', borderColor: '#d8edc7' },
+  perkCardPayback: { backgroundColor: '#ebf5e3', borderColor: '#d8edc7' },
+  perkCardBirthday: { backgroundColor: '#ebf5e3', borderColor: '#d8edc7' },
+  perkCardAnniversary: { backgroundColor: '#ebf5e3', borderColor: '#d8edc7' },
   perkLabel: { fontSize: 12, fontWeight: '700', color: '#555', marginBottom: 4 },
   perkText: { fontSize: 14, color: '#333', lineHeight: 20 },
   noPerks: { fontSize: 14, color: '#888' },
+
+  doubleBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    height: 28,
+    width: 70,
+  },
 });

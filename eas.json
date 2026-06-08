@@ -33,6 +33,11 @@
         "track": "internal",
         "serviceAccountKeyPath": "./google-play-service-account.json",
         "releaseStatus": "draft"
+      },
+      "ios": {
+        "appleId": "mvanderholm@gmail.com",
+        "ascAppId": "FILL_IN_APP_STORE_CONNECT_APP_ID",
+        "appleTeamId": "FILL_IN_APPLE_TEAM_ID"
       }
     }
   }

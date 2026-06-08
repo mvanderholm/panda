@@ -68,7 +68,7 @@ export default function MerchantsScreen({ navigation }) {
   const MerchantCard = ({ item }) => (
     <TouchableOpacity
       style={[styles.card, isWide && styles.cardWide]}
-      onPress={() => navigation.navigate('MerchantDetail', { merchantId: item.MERCHANT_ID, name: item.NAME })}
+      onPress={() => navigation.navigate('MerchantDetail', { merchantId: item.MERCHANT_ID, name: item.NAME, doublePoints: item.DOUBLE_POINTS })}
     >
       <View style={styles.cardBody}>
         <Ionicons name="chevron-forward" size={18} color="#ccc" style={styles.chevron} />
@@ -81,14 +81,14 @@ export default function MerchantsScreen({ navigation }) {
           <View style={styles.nameDetails}>
             <Text style={styles.merchantName}>{item.NAME}</Text>
             <Text style={styles.division}>{item.DIVISION_NAME}</Text>
-            <Text style={styles.location}>{item.CONSUMER_SITE_DISPLAY}</Text>
+            <View style={styles.locationRow}>
+              <Text style={styles.location}>{item.CONSUMER_SITE_DISPLAY}</Text>
+              {item.DOUBLE_POINTS === 1 && (
+                <Image source={require('../assets/BP2X.png')} style={styles.doubleBadge} resizeMode="contain" title="Double Points" />
+              )}
+            </View>
           </View>
         </View>
-        {item.DOUBLE_POINTS === 1 && (
-          <View style={styles.cardMeta}>
-            <Text style={styles.doubleBadge}>2X Points</Text>
-          </View>
-        )}
       </View>
     </TouchableOpacity>
   );
@@ -256,11 +256,10 @@ const styles = StyleSheet.create({
   merchantName: { fontSize: 15, fontWeight: '600', color: '#1a1a1a', marginBottom: 2 },
   division: { fontSize: 12, color: '#888', marginBottom: 2 },
   location: { fontSize: 12, color: '#888' },
-  cardMeta: { flexDirection: 'row', gap: 6, marginBottom: 6, flexWrap: 'wrap' },
+  locationRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: 5 },
   doubleBadge: {
-    fontSize: 11, fontWeight: '700',
-    paddingHorizontal: 8, paddingVertical: 3,
-    borderRadius: 4, backgroundColor: '#fff8e1', color: '#f57f17',
+    height: 24,
+    width: 60,
   },
 
   emptyContainer: { alignItems: 'center', paddingTop: 48, width: '100%' },
