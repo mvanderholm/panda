@@ -4,6 +4,7 @@ import {
   ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { forgotPassword } from '../api';
+import { recordError } from '../crashlytics';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -22,6 +23,7 @@ export default function ForgotPasswordScreen({ navigation }) {
       await forgotPassword(email.trim());
       setSent(true);
     } catch (err) {
+      recordError(err);
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);

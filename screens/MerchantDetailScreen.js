@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image, TouchableOpacity, Linking, Platform } from 'react-native';
 import { apiFetch } from '../api';
+import { recordError } from '../crashlytics';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 export default function MerchantDetailScreen({ route }) {
@@ -18,6 +19,7 @@ export default function MerchantDetailScreen({ route }) {
         setLoading(false);
       })
       .catch(err => {
+        recordError(err);
         setError(err.message);
         setLoading(false);
       });

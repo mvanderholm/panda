@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, Text, FlatList, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
 import { apiFetch } from '../api';
+import { recordError } from '../crashlytics';
 import { useAuth } from '../AuthContext';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
@@ -28,7 +29,7 @@ export default function RewardsScreen({ navigation }) {
     if (!customerId) return;
     apiFetch('MemberRewards', { CustomerId: customerId, platformtype: 2 })
       .then(data => { setRewards(data); setLoading(false); })
-      .catch(err => { setError(err.message); setLoading(false); });
+      .catch(err => { recordError(err); setError(err.message); setLoading(false); });
   }, [customerId]);
 
   if (loading) return (

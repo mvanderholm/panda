@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch, getDivisions } from '../api';
+import { recordError } from '../crashlytics';
 import { useAuth } from '../AuthContext';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
@@ -33,6 +34,7 @@ export default function MerchantsScreen({ navigation }) {
         setLoading(false);
       })
       .catch(err => {
+        recordError(err);
         setError(err.message);
         setLoading(false);
       });

@@ -5,6 +5,7 @@ import QRCode from 'react-native-qrcode-svg';
 import BarcodeDisplay from '../components/BarcodeDisplay';
 import { useAuth } from '../AuthContext';
 import { getMemberProfile } from '../api';
+import { recordError } from '../crashlytics';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 export default function MyCardScreen() {
@@ -22,7 +23,7 @@ export default function MyCardScreen() {
         const profile = Array.isArray(result) ? result[0] : result;
         setCardNumber(profile?.CARD_NUMBER ? String(profile.CARD_NUMBER) : null);
       })
-      .catch(() => { setCardNumber(null); })
+      .catch(err => { recordError(err); setCardNumber(null); })
       .finally(() => setLoading(false));
   }, [customerId]);
 

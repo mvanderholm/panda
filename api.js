@@ -1,6 +1,16 @@
 const CF_BASE_URL = 'https://eport9.com/pinpoint/pinpointWSMobile/PinPointWSMobileVmcv.cfc';
 const AUTH_TOKEN = 'cHB0bWJsc3ZjOmwkbW43IWpoKnE=';
 
+function lowerKeys(val) {
+  if (Array.isArray(val)) return val.map(lowerKeys);
+  if (val && typeof val === 'object') {
+    return Object.fromEntries(
+      Object.entries(val).map(([k, v]) => [k.toLowerCase(), lowerKeys(v)])
+    );
+  }
+  return val;
+}
+
 export async function apiFetch(method, params = {}) {
   const queryParams = new URLSearchParams({
     method,
@@ -15,7 +25,7 @@ export async function apiFetch(method, params = {}) {
   if (!response.ok) throw new Error(`API error: ${response.status}`);
 
   try {
-    return JSON.parse(cleanText);
+    return lowerKeys(JSON.parse(cleanText));
   } catch (err) {
     throw new Error(`JSON parse error: ${cleanText.substring(0, 200)}`);
   }

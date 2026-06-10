@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { enrollMember } from '../api';
 import analytics from '../analytics';
+import { recordError } from '../crashlytics';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 const MONTHS = [
@@ -54,6 +55,8 @@ export default function EnrollmentScreen({ navigation }) {
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Step 1 — Account
   const [first, setFirst] = useState('');
@@ -172,13 +175,14 @@ export default function EnrollmentScreen({ navigation }) {
           'An account with that email address already exists. Please sign in instead.',
         );
       } else {
-        analytics.track('SignupFailed', {
-          code: data.code ?? `type_${data?.type}`,
-          description: data?.description ?? 'Unknown error',
-        });
-        Alert.alert('Enrollment failed', data?.description || 'Something went wrong. Please try again.');
+        const code = data?.code ?? `type_${data?.type}`;
+        const description = data?.description || `Server returned an unexpected response (${code}). Please try again.`;
+        console.log('[Enrollment] failure response:', JSON.stringify(data));
+        analytics.track('SignupFailed', { code, description });
+        Alert.alert('Enrollment failed', description);
       }
     } catch (err) {
+      recordError(err);
       analytics.track('SignupFailed', { code: 'exception', description: err.message });
       Alert.alert('Error', err.message);
     } finally {
@@ -266,15 +270,20 @@ export default function EnrollmentScreen({ navigation }) {
             {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={[styles.input, errors.password && styles.inputError]}
-              placeholder="Min 8 characters"
-              value={password}
-              onChangeText={v => { setPassword(v); clearError('password'); }}
-              secureTextEntry
-              accessibilityLabel="Password"
-              accessibilityHint="Minimum 8 characters with uppercase, numbers, or symbols"
-            />
+            <View style={[styles.passwordRow, errors.password && styles.inputError]}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Min 8 characters"
+                value={password}
+                onChangeText={v => { setPassword(v); clearError('password'); }}
+                secureTextEntry={!showPassword}
+                accessibilityLabel="Password"
+                accessibilityHint="Minimum 8 characters with uppercase, numbers, or symbols"
+              />
+              <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={styles.eyeButton}>
+                <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
+              </TouchableOpacity>
+            </View>
             {password.length > 0 && (
               <Text style={[styles.strengthText, { color: passwordStrength(password).color }]}>
                 {passwordStrength(password).label}
@@ -283,14 +292,19 @@ export default function EnrollmentScreen({ navigation }) {
             {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
             <Text style={styles.label}>Confirm password</Text>
-            <TextInput
-              style={[styles.input, errors.confirmPassword && styles.inputError]}
-              placeholder="Re-enter password"
-              value={confirmPassword}
-              onChangeText={v => { setConfirmPassword(v); clearError('confirmPassword'); }}
-              secureTextEntry
-              accessibilityLabel="Confirm password"
-            />
+            <View style={[styles.passwordRow, errors.confirmPassword && styles.inputError]}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Re-enter password"
+                value={confirmPassword}
+                onChangeText={v => { setConfirmPassword(v); clearError('confirmPassword'); }}
+                secureTextEntry={!showConfirmPassword}
+                accessibilityLabel="Confirm password"
+              />
+              <TouchableOpacity onPress={() => setShowConfirmPassword(v => !v)} style={styles.eyeButton}>
+                <Text style={styles.eyeText}>{showConfirmPassword ? 'Hide' : 'Show'}</Text>
+              </TouchableOpacity>
+            </View>
             {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
           </>
         )}
@@ -504,6 +518,28 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontSize: 16,
     backgroundColor: '#fff',
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    marginBottom: 4,
+    backgroundColor: '#fff',
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+  },
+  eyeButton: {
+    paddingHorizontal: 12,
+  },
+  eyeText: {
+    color: '#1a73e8',
+    fontSize: 13,
+    fontWeight: '600',
   },
   inputError: {
     borderColor: '#d32f2f',

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native';
 import { useAuth } from '../AuthContext';
+import { recordError } from '../crashlytics';
 
 // --- Firebase (disabled) ---
 // import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -12,6 +13,7 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // const [isRegistering, setIsRegistering] = useState(false);
 
@@ -20,6 +22,7 @@ export default function LoginScreen({ navigation }) {
     try {
       await login(email, password);
     } catch (err) {
+      recordError(err);
       Alert.alert('Error', err.message);
     } finally {
       setLoading(false);
@@ -51,13 +54,18 @@ export default function LoginScreen({ navigation }) {
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={styles.passwordRow}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
+          <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={styles.eyeButton}>
+            <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.button} onPress={handleAuth} disabled={loading}>
           {loading
@@ -91,6 +99,10 @@ const styles = StyleSheet.create({
   card: { backgroundColor: 'white', borderRadius: 16, padding: 32, width: '100%', maxWidth: 420, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
   logo: { width: 200, height: 80, alignSelf: 'center', marginBottom: 24 },
   input: { borderWidth: 1.5, borderColor: '#e0e0e0', borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 16 },
+  passwordRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#e0e0e0', borderRadius: 8, marginBottom: 12 },
+  passwordInput: { flex: 1, padding: 12, fontSize: 16 },
+  eyeButton: { paddingHorizontal: 12 },
+  eyeText: { color: '#1a73e8', fontSize: 13, fontWeight: '600' },
   button: { backgroundColor: '#1a73e8', borderRadius: 8, padding: 14, alignItems: 'center', marginBottom: 12 },
   buttonText: { color: 'white', fontWeight: '600', fontSize: 16 },
   toggle: { color: '#1a73e8', textAlign: 'center', fontSize: 14 },

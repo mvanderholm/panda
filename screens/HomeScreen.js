@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../AuthContext';
 import { apiFetch } from '../api';
+import { recordError } from '../crashlytics';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 const NAV_ITEMS = [
@@ -27,7 +28,7 @@ export default function HomeScreen({ navigation }) {
         setMember(data[0]);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(err => { recordError(err); setLoading(false); });
   }, [customerId]);
 
   const firstName = member?.FIRST || user?.email?.split('@')[0] || 'Member';

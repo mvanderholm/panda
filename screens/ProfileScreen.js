@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { useAuth } from '../AuthContext';
 import { apiFetch, updateProfile } from '../api';
+import { recordError } from '../crashlytics';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 const TABS = ['Profile', 'My Points', 'Transactions', 'Contact'];
@@ -50,7 +51,7 @@ export default function ProfileScreen({ navigation }) {
     if (!customerId) return;
     apiFetch('GetMemberProfile', { CustomerId: customerId, platformtype: 2 })
       .then(data => { setMember(data[0]); setLoading(false); })
-      .catch(err => { setError(err.message); setLoading(false); });
+      .catch(err => { recordError(err); setError(err.message); setLoading(false); });
   }, [customerId]);
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export default function ProfileScreen({ navigation }) {
     setPointsLoading(true);
     apiFetch('PointsAccumulated', { CustomerId: customerId, platformtype: 2 })
       .then(data => { setPoints(data); setPointsLoading(false); })
-      .catch(() => setPointsLoading(false));
+      .catch(err => { recordError(err); setPointsLoading(false); });
   }, [activeTab]);
 
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function ProfileScreen({ navigation }) {
     setTxLoading(true);
     apiFetch('RecentTransactions', { CustomerId: customerId, platformtype: 2 })
       .then(data => { setTransactions(data); setTxLoading(false); })
-      .catch(() => setTxLoading(false));
+      .catch(err => { recordError(err); setTxLoading(false); });
   }, [activeTab]);
 
   const handleSignOut = () => {
@@ -109,6 +110,7 @@ export default function ProfileScreen({ navigation }) {
       setMember(data[0]);
       setEditing(false);
     } catch (err) {
+      recordError(err);
       Alert.alert('Save failed', err.message || 'Please try again.');
     } finally {
       setSaving(false);
