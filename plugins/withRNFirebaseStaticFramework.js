@@ -14,18 +14,21 @@ function withRNFirebaseStaticFramework(config) {
         podfile = '$RNFirebaseAsStaticFramework = true\n' + podfile;
       }
 
-      // Allow non-modular includes in framework modules — required because RNFBApp
-      // (Objective-C) includes React-Core headers that are not modular, which becomes
-      // a hard error when use_frameworks! :linkage => :static is active.
-      if (!podfile.includes('CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES')) {
+      // With use_frameworks! :linkage => :static, RNFB Objective-C pods (RNFBApp, etc.)
+      // have DEFINES_MODULE = YES from their podspec, which creates a module map.
+      // This causes two cascading errors:
+      //   1. "non-modular header inside framework module RNFBApp" (React-Core headers)
+      //   2. "RCTBridgeModule must be imported from module RNFBApp.RNFBAppModule"
+      // Setting DEFINES_MODULE = NO on RNFB* targets removes the module map, making
+      // them plain static frameworks that don't enforce modular header rules.
+      if (!podfile.includes('RNFB_DEFINES_MODULE_PATCH')) {
         const callStart = podfile.indexOf('react_native_post_install(');
         if (callStart !== -1) {
-          // Detect indentation of the react_native_post_install line
           let lineStart = callStart;
           while (lineStart > 0 && podfile[lineStart - 1] !== '\n') lineStart--;
           const indent = podfile.slice(lineStart, callStart).match(/^([ \t]*)/)[1];
 
-          // Find end of the call by counting balanced parens (handles multi-line)
+          // Count balanced parens to handle multi-line calls
           let depth = 0;
           let callEnd = callStart;
           for (let i = callStart; i < podfile.length; i++) {
@@ -35,18 +38,20 @@ function withRNFirebaseStaticFramework(config) {
               if (depth === 0) { callEnd = i + 1; break; }
             }
           }
-          // Advance past the rest of the closing line (including newline)
           while (callEnd < podfile.length && podfile[callEnd] !== '\n') callEnd++;
           callEnd++;
 
-          const clangFix =
+          const fix =
+            `${indent}# RNFB_DEFINES_MODULE_PATCH\n` +
             `${indent}installer.pods_project.targets.each do |target|\n` +
-            `${indent}  target.build_configurations.each do |build_config|\n` +
-            `${indent}    build_config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'\n` +
+            `${indent}  if target.name.start_with?('RNFB')\n` +
+            `${indent}    target.build_configurations.each do |build_config|\n` +
+            `${indent}      build_config.build_settings['DEFINES_MODULE'] = 'NO'\n` +
+            `${indent}    end\n` +
             `${indent}  end\n` +
             `${indent}end\n`;
 
-          podfile = podfile.slice(0, callEnd) + clangFix + podfile.slice(callEnd);
+          podfile = podfile.slice(0, callEnd) + fix + podfile.slice(callEnd);
         }
       }
 
