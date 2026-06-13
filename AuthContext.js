@@ -41,14 +41,14 @@ export function AuthProvider({ children }) {
     if (data?.CODE !== 1) {
       throw new Error(data?.DESCRIPTION || 'Login failed');
     }
-    const id = data.CUSTOMER_ID ?? data.customer_id;
+    const id = data.CUSTOMER_ID;
 
     // Fetch profile to get market ID; fall back to 1 if unavailable
     let market = 1;
     try {
       const profile = await getMemberProfile(id);
       const p = Array.isArray(profile) ? profile[0] : profile;
-      market = p?.MARKET_ID ?? p?.MARKETID ?? p?.MARKET ?? 1;
+      market = p?.MARKET_ID ?? 1;
     } catch (_) {}
 
     await AsyncStorage.setItem('cfc_session', JSON.stringify({ user: email, customerId: id, marketId: market }));

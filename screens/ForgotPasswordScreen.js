@@ -60,6 +60,7 @@ export default function ForgotPasswordScreen({ navigation }) {
           <TextInput
             style={[styles.input, error && styles.inputError]}
             placeholder="you@example.com"
+            placeholderTextColor="#9ca3af"
             value={email}
             onChangeText={v => { setEmail(v); setError(''); }}
             autoCapitalize="none"

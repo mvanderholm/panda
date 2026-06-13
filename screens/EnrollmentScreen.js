@@ -234,6 +234,7 @@ export default function EnrollmentScreen({ navigation }) {
                 <TextInput
                   style={[styles.input, errors.first && styles.inputError]}
                   placeholder="First name"
+                  placeholderTextColor="#9ca3af"
                   value={first}
                   onChangeText={v => { setFirst(v); clearError('first'); }}
                   accessibilityLabel="First name"
@@ -247,6 +248,7 @@ export default function EnrollmentScreen({ navigation }) {
                 <TextInput
                   style={[styles.input, errors.last && styles.inputError]}
                   placeholder="Last name"
+                  placeholderTextColor="#9ca3af"
                   value={last}
                   onChangeText={v => { setLast(v); clearError('last'); }}
                   accessibilityLabel="Last name"
@@ -260,6 +262,7 @@ export default function EnrollmentScreen({ navigation }) {
             <TextInput
               style={[styles.input, errors.email && styles.inputError]}
               placeholder="you@example.com"
+              placeholderTextColor="#9ca3af"
               value={email}
               onChangeText={v => { setEmail(v); clearError('email'); }}
               autoCapitalize="none"
@@ -274,6 +277,7 @@ export default function EnrollmentScreen({ navigation }) {
               <TextInput
                 style={styles.passwordInput}
                 placeholder="Min 8 characters"
+                placeholderTextColor="#9ca3af"
                 value={password}
                 onChangeText={v => { setPassword(v); clearError('password'); }}
                 secureTextEntry={!showPassword}
@@ -296,6 +300,7 @@ export default function EnrollmentScreen({ navigation }) {
               <TextInput
                 style={styles.passwordInput}
                 placeholder="Re-enter password"
+                placeholderTextColor="#9ca3af"
                 value={confirmPassword}
                 onChangeText={v => { setConfirmPassword(v); clearError('confirmPassword'); }}
                 secureTextEntry={!showConfirmPassword}
@@ -316,6 +321,7 @@ export default function EnrollmentScreen({ navigation }) {
             <TextInput
               style={[styles.input, errors.phone && styles.inputError]}
               placeholder="(123) 456-7890"
+              placeholderTextColor="#9ca3af"
               value={phone}
               onChangeText={v => {
                 setPhone(formatPhone(v));
@@ -331,6 +337,7 @@ export default function EnrollmentScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Street address"
+              placeholderTextColor="#9ca3af"
               value={address}
               onChangeText={setAddress}
               accessibilityLabel="Street address"
@@ -340,6 +347,7 @@ export default function EnrollmentScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Unit, suite, apt."
+              placeholderTextColor="#9ca3af"
               value={address2}
               onChangeText={setAddress2}
               accessibilityLabel="Address line 2, optional"
@@ -349,6 +357,7 @@ export default function EnrollmentScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="City"
+              placeholderTextColor="#9ca3af"
               value={city}
               onChangeText={setCity}
               accessibilityLabel="City"
@@ -360,6 +369,7 @@ export default function EnrollmentScreen({ navigation }) {
                 <TextInput
                   style={[styles.input, styles.stateInput]}
                   placeholder="ST"
+                  placeholderTextColor="#9ca3af"
                   value={stateAbbr}
                   onChangeText={setStateAbbr}
                   autoCapitalize="characters"
@@ -373,6 +383,7 @@ export default function EnrollmentScreen({ navigation }) {
                 <TextInput
                   style={styles.input}
                   placeholder="ZIP"
+                  placeholderTextColor="#9ca3af"
                   value={zip}
                   onChangeText={setZip}
                   keyboardType="number-pad"

@@ -20,10 +20,19 @@
       },
       "autoIncrement": true
     },
+    "adhoc": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      }
+    },
     "apk": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "ABI_FILTER": "arm64-v8a"
       }
     }
   },
@@ -37,8 +46,8 @@
       },
       "ios": {
         "appleId": "mvanderholm@gmail.com",
-        "ascAppId": "FILL_IN_APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "FILL_IN_APPLE_TEAM_ID"
+        "ascAppId": "533124525",
+        "appleTeamId": "UEUMYG8J48"
       }
     }
   }
