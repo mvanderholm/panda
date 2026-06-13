@@ -35,6 +35,7 @@
     "plugins": [
       "./plugins/withAdiRegistration",
       "./plugins/withAbiSplits",
+      "./plugins/withRNFirebaseStaticFramework",
       "@react-native-firebase/app",
       "@react-native-firebase/crashlytics",
       [
