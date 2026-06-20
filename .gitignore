@@ -36,6 +36,10 @@ yarn-error.*
 # Google Play service account key — never commit this
 google-play-service-account.json
 
+# Local credentials and keystore files — never commit these
+credentials.json
+app_store_files/
+
 # typescript
 *.tsbuildinfo
 

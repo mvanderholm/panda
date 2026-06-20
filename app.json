@@ -28,6 +28,7 @@
       },
       "package": "com.pinpoint.mobile",
       "googleServicesFile": "./google-services.json",
+      "versionCode": 6
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,6 +36,7 @@
     "plugins": [
       "./plugins/withAdiRegistration",
       "./plugins/withAbiSplits",
+      "./plugins/withRemoveAdIdPermission",
       "./plugins/withRNFirebaseStaticFramework",
       "@react-native-firebase/app",
       "@react-native-firebase/crashlytics",
