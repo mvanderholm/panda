@@ -103,6 +103,7 @@ export default function ProfileScreen({ navigation }) {
         zip: editZip.trim(),
       };
       params.birth_month = editBirthMonth;
+      params.wedding_month = 0;
       if (editGender !== null && editGender !== undefined) params.Gender = String(editGender);
 
       await updateProfile(customerId, params);
