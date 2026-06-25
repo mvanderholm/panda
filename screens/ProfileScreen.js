@@ -102,7 +102,7 @@ export default function ProfileScreen({ navigation }) {
         state: editState.trim(),
         zip: editZip.trim(),
       };
-      if (editBirthMonth > 0) params.birth_month = editBirthMonth;
+      params.birth_month = editBirthMonth;
       if (editGender !== null && editGender !== undefined) params.Gender = String(editGender);
 
       await updateProfile(customerId, params);
