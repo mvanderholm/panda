@@ -85,7 +85,7 @@ export default function ProfileScreen({ navigation }) {
     setEditCity(member?.CITY || '');
     setEditState(member?.STATE || '');
     setEditZip(member?.ZIP?.trim() || '');
-    setEditBirthMonth(member?.BD1_MONTH ?? 0);
+    setEditBirthMonth(member?.BIRTH_MONTH ?? 0);
     setEditGender(member?.GENDER ?? 0);
     setEditing(true);
   };
@@ -106,8 +106,26 @@ export default function ProfileScreen({ navigation }) {
       if (editGender !== null && editGender !== undefined) params.Gender = String(editGender);
 
       await updateProfile(customerId, params);
-      const data = await apiFetch('GetMemberProfile', { CustomerId: customerId, platformtype: 2 });
-      setMember(data[0]);
+
+      // Re-fetch the updated profile; if it fails, patch local state from
+      // the edited values so the display is still correct.
+      try {
+        const refreshed = await apiFetch('GetMemberProfile', { CustomerId: customerId, platformtype: 2 });
+        if (refreshed?.[0]) setMember(refreshed[0]);
+      } catch (_) {
+        setMember(prev => ({
+          ...prev,
+          FIRST: editFirst.trim() || prev?.FIRST,
+          LAST: editLast.trim() || prev?.LAST,
+          PHONE2: editPhone.trim() || prev?.PHONE2,
+          ADDRESS: editAddress.trim() || prev?.ADDRESS,
+          CITY: editCity.trim() || prev?.CITY,
+          STATE: editState.trim() || prev?.STATE,
+          ZIP: editZip.trim() || prev?.ZIP,
+          BIRTH_MONTH: editBirthMonth || prev?.BIRTH_MONTH,
+          GENDER: editGender ?? prev?.GENDER,
+        }));
+      }
       setEditing(false);
     } catch (err) {
       recordError(err);
@@ -291,7 +309,7 @@ export default function ProfileScreen({ navigation }) {
                   {item.POINTS > 0 ? '+' : ''}{item.POINTS} pts
                 </Text>
               </View>
-              <Text style={styles.txDate}>{item.TRANS_DATE}</Text>
+              <Text style={styles.txDate}>{item.TRAN_DATE}</Text>
             </View>
           )}
           ListEmptyComponent={<Text style={styles.empty}>No transactions found.</Text>}

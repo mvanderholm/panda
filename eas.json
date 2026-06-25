@@ -43,7 +43,7 @@
       "android": {
         "track": "internal",
         "serviceAccountKeyPath": "./google-play-service-account.json",
-        "releaseStatus": "draft"
+        "releaseStatus": "completed"
       },
       "ios": {
         "appleId": "mvanderholm@gmail.com",

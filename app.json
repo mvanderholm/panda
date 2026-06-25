@@ -2,7 +2,7 @@
   "expo": {
     "name": "PinPoint",
     "slug": "panda-mobile",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -28,7 +28,7 @@
       },
       "package": "com.pinpoint.mobile",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 8
+      "versionCode": 3001166
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -44,6 +44,9 @@
         "expo-build-properties",
         {
           "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24,
             "enableProguardInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true
           },

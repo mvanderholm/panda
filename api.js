@@ -12,7 +12,7 @@ export async function apiFetch(method, params = {}) {
   const rawText = await response.text();
   const cleanText = rawText.replace(/--->/g, '').replace(/F$/, '').trim();
 
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  if (!response.ok) throw new Error(`API error: ${response.status}: ${cleanText.substring(0, 400)}`);
 
   try {
     return JSON.parse(cleanText);
