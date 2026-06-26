@@ -46,9 +46,12 @@
         "releaseStatus": "completed"
       },
       "ios": {
-        "appleId": "mvanderholm@gmail.com",
+        "appleId": "abarnes@pinpointcard.com",
         "ascAppId": "533124525",
-        "appleTeamId": "UEUMYG8J48"
+        "appleTeamId": "UEUMYG8J48",
+        "ascApiKeyPath": "./app_store_files/AuthKey_QVVL5LK6SW.p8",
+        "ascApiKeyId": "QVVL5LK6SW",
+        "ascApiKeyIssuerId": "69a6de76-9047-47e3-e053-5b8c7c11a4d1"
       }
     }
   }

@@ -356,7 +356,7 @@ export default function ProfileScreen({ navigation }) {
             style={[styles.tabItem, activeTab === tab && styles.tabItemActive]}
             onPress={() => { setActiveTab(tab); setEditing(false); }}
           >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
+            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]} numberOfLines={1} adjustsFontSizeToFit>{tab}</Text>
           </TouchableOpacity>
         ))}
       </View>

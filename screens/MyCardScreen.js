@@ -54,7 +54,7 @@ export default function MyCardScreen() {
               ) : (
                 <QRCode value={cardNumber} size={isWide ? 220 : 180} />
               )}
-              <Text style={styles.cardNumber}>{cardNumber}</Text>
+              <Text style={styles.cardNumber} numberOfLines={1} adjustsFontSizeToFit>{cardNumber}</Text>
             </>
           ) : (
             <Text style={styles.noCard}>Account number unavailable</Text>

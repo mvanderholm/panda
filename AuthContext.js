@@ -4,12 +4,6 @@ import { apiFetch, getMemberProfile } from './api';
 import { recordError, setUserId } from './crashlytics';
 import analytics from './analytics';
 
-// --- Firebase (disabled) ---
-// import { onAuthStateChanged } from 'firebase/auth';
-// import { auth } from './firebase';
-// --------------------------
-
-// import { registerForPushNotifications } from './notifications';
 
 const AuthContext = createContext();
 
@@ -59,15 +53,6 @@ export function AuthProvider({ children }) {
     analytics.setUser(id);
     analytics.track('login');
 
-    // const token = await registerForPushNotifications();
-    // if (token && id) {
-    //   await apiFetch('SavePushToken', {
-    //     CustomerId: id,
-    //     PushToken: token,
-    //     Platform: 'expo'
-    //   });
-    //   console.log('Push token saved:', token);
-    // }
   };
 
   const logout = async () => {
@@ -76,28 +61,6 @@ export function AuthProvider({ children }) {
     setCustomerId(null);
     setMarketId(1);
   };
-
-  // --- Firebase listener (disabled) ---
-  // useEffect(() => {
-  //   return onAuthStateChanged(auth, async (firebaseUser) => {
-  //     setUser(firebaseUser);
-  //     if (firebaseUser?.email) {
-  //       try {
-  //         const result = await apiFetch('GetCustomerIdByEmail', { email: firebaseUser.email });
-  //         if (result[0]?.RESPONSE?.CODE === 1) {
-  //           const id = result[0].customerId;
-  //           setCustomerId(id);
-  //         }
-  //       } catch (err) {
-  //         console.error('Auth setup error:', err);
-  //       }
-  //     } else {
-  //       setCustomerId(null);
-  //     }
-  //     setLoading(false);
-  //   });
-  // }, []);
-  // ------------------------------------
 
   return (
     <AuthContext.Provider value={{ user, customerId, marketId, login, logout }}>

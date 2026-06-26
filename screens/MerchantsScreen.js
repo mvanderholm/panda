@@ -152,6 +152,13 @@ export default function MerchantsScreen({ navigation }) {
         <Text style={styles.subtitle}>
           {filtered.length} {filtered.length === 1 ? 'merchant' : 'merchants'}{activeDivision || query ? ' found' : ' in your area'}
         </Text>
+
+        {merchants.some(m => m.DOUBLE_POINTS === 1) && (
+          <View style={styles.legend}>
+            <Image source={require('../assets/BP2X.png')} style={styles.legendBadge} resizeMode="contain" />
+            <Text style={styles.legendText}>= Double Points at this merchant</Text>
+          </View>
+        )}
       </View>
 
       {isWide ? (
@@ -263,6 +270,10 @@ const styles = StyleSheet.create({
     height: 24,
     width: 60,
   },
+
+  legend: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 8 },
+  legendBadge: { height: 18, width: 45, marginRight: 6 },
+  legendText: { fontSize: 12, color: '#666' },
 
   emptyContainer: { alignItems: 'center', paddingTop: 48, width: '100%' },
   emptyText: { fontSize: 15, color: '#888', marginBottom: 12 },

@@ -177,7 +177,7 @@ export default function EnrollmentScreen({ navigation }) {
       } else {
         const code = data?.code ?? `type_${data?.type}`;
         const description = data?.description || `Server returned an unexpected response (${code}). Please try again.`;
-        console.log('[Enrollment] failure response:', JSON.stringify(data));
+        recordError(new Error(`[Enrollment] failure response: ${JSON.stringify(data)}`));
         analytics.track('SignupFailed', { code, description });
         Alert.alert('Enrollment failed', description);
       }

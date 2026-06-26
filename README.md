@@ -12,7 +12,7 @@ A mobile loyalty rewards app that helps consumers discover local merchants, earn
 - **Redemption Code** — Barcode and QR code toggle for redeeming rewards at the merchant
 - **User Profile** — View member details and manage your account
 - **Authentication** — Email/password login and new member enrollment via ColdFusion backend
-- **Push Notifications** — Implemented via Expo (currently disabled)
+- **Crash Reporting & Analytics** — Firebase Crashlytics and Analytics via native SDK
 
 ## Tech Stack
 
@@ -25,7 +25,8 @@ A mobile loyalty rewards app that helps consumers discover local merchants, earn
 | Backend | Custom ColdFusion API (eport9.com) |
 | Barcode | @kichiyaki/react-native-barcode-generator |
 | QR Code | react-native-qrcode-svg |
-| Notifications | Expo Notifications (disabled) |
+| Crash Reporting | @react-native-firebase/crashlytics |
+| Analytics | @react-native-firebase/analytics |
 | Local Storage | AsyncStorage |
 
 ## Project Structure
@@ -34,9 +35,9 @@ A mobile loyalty rewards app that helps consumers discover local merchants, earn
 panda-mobile/
 ├── App.js                      # Root component, navigation setup
 ├── AuthContext.js              # Auth state & customerId context
-├── firebase.js                 # Firebase initialization (disabled)
 ├── api.js                      # Backend API wrapper (ColdFusion CFC)
-├── notifications.js            # Push notification setup (disabled)
+├── analytics.js                # Firebase Analytics wrapper
+├── crashlytics.js              # Firebase Crashlytics wrapper
 ├── screens/
 │   ├── LoginScreen.js
 │   ├── EnrollmentScreen.js
@@ -93,9 +94,8 @@ npm run web
 ## Configuration
 
 - **Backend API** — ColdFusion endpoint configured in [api.js](api.js)
-- **Firebase** — configured in [firebase.js](firebase.js) but currently disabled in favour of CFC auth
+- **Firebase** — Analytics and Crashlytics via native SDK (`@react-native-firebase`); configured via `google-services.json` (Android) and `GoogleService-Info.plist` (iOS)
 - **Expo** — app name, package ID, icons, and orientation set in [app.json](app.json)
-- **Push Notifications** — implemented but disabled; re-enable in [notifications.js](notifications.js) and [AuthContext.js](AuthContext.js)
 
 ## Android Package
 

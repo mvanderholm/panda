@@ -4,7 +4,7 @@ import { useBreakpoint } from '../hooks/useBreakpoint';
 const SECTIONS = [
   {
     heading: 'Introduction',
-    body: `PinPoint Card ® Inc. fully supports your right to protect your privacy and will do nothing to jeopardize that right. PinPoint Card ® Inc. is committed to maintaining strong privacy protections for our users. Our Privacy Policy is designed to help you understand how we collect, use and safeguard the information you provide to us and to assist you in making informed decisions when using our website.`,
+    body: `PinPoint Card ® Inc. fully supports your right to protect your privacy and will do nothing to jeopardize that right. PinPoint Card ® Inc. is committed to maintaining strong privacy protections for our users. Our Privacy Policy is designed to help you understand how we collect, use and safeguard the information you provide to us and to assist you in making informed decisions when using our website or the PinPoint mobile app.`,
   },
   {
     heading: 'Choice / Opt-out for Merchant Emails',
@@ -12,7 +12,7 @@ const SECTIONS = [
   },
   {
     heading: 'Information Collected',
-    body: `This website collects personal information from our users. This information includes:\n\n• IP address\n• Browser information\n• Name\n• Email address\n• Mailing address\n• Telephone number\n\nThis site collects personal information from our users at several different points on our website as outlined above.`,
+    body: `PinPoint collects personal information from our users through our website and mobile app. This information includes:\n\n• IP address\n• Device information\n• Name\n• Email address\n• Mailing address\n• Telephone number\n\nThis information is collected at several different points during your use of our services as outlined above.`,
   },
   {
     heading: 'We Protect Visitor Information',
@@ -20,7 +20,7 @@ const SECTIONS = [
   },
   {
     heading: 'Your Privacy at Other Sites',
-    body: `This website contains links to other sites. Please be aware that we are not responsible for the privacy practices of such other sites. We encourage our users to be aware when they leave our site and to read the privacy statements of each and every Web site that collects personally identifiable information. This privacy statement applies solely to information collected by this Web site.`,
+    body: `Our website and mobile app may contain links to other sites. Please be aware that we are not responsible for the privacy practices of such other sites. We encourage our users to be aware when they leave our service and to read the privacy statements of each and every website or app that collects personally identifiable information. This privacy statement applies solely to information collected by PinPoint Card ® Inc. through our website and mobile app.`,
   },
   {
     heading: 'Our Disclosure Policy',
@@ -28,7 +28,7 @@ const SECTIONS = [
   },
   {
     heading: 'Your Understanding and Consent',
-    body: `By using our website, you consent to the collection and use of this information by PinPoint Card ® Inc. If we decide to change our privacy policy, we will post those changes on this page so that you are always aware of what information we collect, how we use it, and under what circumstances we disclose it.`,
+    body: `By using our website or the PinPoint mobile app, you consent to the collection and use of this information by PinPoint Card ® Inc. If we decide to change our privacy policy, we will post those changes on this page so that you are always aware of what information we collect, how we use it, and under what circumstances we disclose it.`,
   },
 ];
 

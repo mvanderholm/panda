@@ -1,12 +1,7 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { useAuth } from '../AuthContext';
 import { recordError } from '../crashlytics';
-
-// --- Firebase (disabled) ---
-// import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-// import { auth } from '../firebase';
-// ---------------------------
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
@@ -14,8 +9,6 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  // const [isRegistering, setIsRegistering] = useState(false);
 
   const handleAuth = async () => {
     setLoading(true);
@@ -28,76 +21,60 @@ export default function LoginScreen({ navigation }) {
       setLoading(false);
     }
 
-    // --- Firebase (disabled) ---
-    // try {
-    //   if (isRegistering) {
-    //     await createUserWithEmailAndPassword(auth, email, password);
-    //   } else {
-    //     await signInWithEmailAndPassword(auth, email, password);
-    //   }
-    // } catch (err) {
-    //   Alert.alert('Error', err.message.replace('Firebase: ', ''));
-    // }
-    // ---------------------------
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+    <KeyboardAvoidingView style={styles.kav} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <View style={styles.card}>
+          <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email address"
-          placeholderTextColor="#9ca3af"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <View style={styles.passwordRow}>
           <TextInput
-            style={styles.passwordInput}
-            placeholder="Password"
+            style={styles.input}
+            placeholder="Email address"
             placeholderTextColor="#9ca3af"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
           />
-          <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={styles.eyeButton}>
-            <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
+          <View style={styles.passwordRow}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Password"
+              placeholderTextColor="#9ca3af"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={styles.eyeButton}>
+              <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.button} onPress={handleAuth} disabled={loading}>
+            {loading
+              ? <ActivityIndicator color="white" />
+              : <Text style={styles.buttonText}>Sign In</Text>
+            }
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+            <Text style={styles.toggle}>Forgot your password?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Enrollment')}>
+            <Text style={styles.toggle}>Don't have an account? Register</Text>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.button} onPress={handleAuth} disabled={loading}>
-          {loading
-            ? <ActivityIndicator color="white" />
-            : <Text style={styles.buttonText}>Sign In</Text>
-          }
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={styles.toggle}>Forgot your password?</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Enrollment')}>
-          <Text style={styles.toggle}>Don't have an account? Register</Text>
-        </TouchableOpacity>
-
-        {/* --- Firebase register toggle (disabled) ---
-        <TouchableOpacity onPress={() => setIsRegistering(!isRegistering)}>
-          <Text style={styles.toggle}>
-            {isRegistering ? 'Already have an account? Sign in' : "Don't have an account? Register"}
-          </Text>
-        </TouchableOpacity>
-        */}
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f6f9', justifyContent: 'center', alignItems: 'center', padding: 20, minHeight: '100%' },
+  kav: { flex: 1, backgroundColor: '#f4f6f9' },
+  container: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   card: { backgroundColor: 'white', borderRadius: 16, padding: 32, width: '100%', maxWidth: 420, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
   logo: { width: 200, height: 80, alignSelf: 'center', marginBottom: 24 },
   input: { borderWidth: 1.5, borderColor: '#e0e0e0', borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 16 },

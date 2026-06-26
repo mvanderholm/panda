@@ -2,7 +2,7 @@
   "expo": {
     "name": "PinPoint",
     "slug": "panda-mobile",
-    "version": "2.0.0",
+    "version": "3.0.11",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -13,11 +13,12 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.pinpointrewards.mobile",
+      "bundleIdentifier": "com.mobile.pinpoint.customerapp",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "3"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,7 +29,7 @@
       },
       "package": "com.pinpoint.mobile",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 3001166
+      "versionCode": 3001168
     },
     "web": {
       "favicon": "./assets/favicon.png"
