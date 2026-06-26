@@ -29,7 +29,7 @@
       },
       "package": "com.pinpoint.mobile",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 3001171
+      "versionCode": 3001172
     },
     "web": {
       "favicon": "./assets/favicon.png"
