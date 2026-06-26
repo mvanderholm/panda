@@ -150,7 +150,7 @@ export default function EnrollmentScreen({ navigation }) {
         state: stateAbbr.trim(),
         zip: zip.trim(),
         country: 'US',
-        BD1_Month: birthMonth,
+        ...(birthMonth > 0 && { BD1_Month: birthMonth }),
         gender,
         market_id: 1,
         PlatformType: 2,
