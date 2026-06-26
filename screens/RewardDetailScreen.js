@@ -41,18 +41,20 @@ export default function RewardDetailScreen({ route, navigation }) {
       <Text style={[styles.badge, { backgroundColor: colors.badge }]}>{reward.CAMPAIGNTYPE}</Text>
       <Text style={styles.offer}>{reward.OFFER}</Text>
       <Text style={[styles.expiry, { color: daysColor(reward.EXPIREDAYS) }]}>
-        Expires in {reward.EXPIREDAYS} days
+        {reward.EXPIREDAYS > 0 ? `Expires in ${reward.EXPIREDAYS} days` : 'Expired'}
       </Text>
     </View>
   );
 
+  const isExpired = reward.EXPIREDAYS != null && reward.EXPIREDAYS <= 0;
+
   const redeemButton = (
     <TouchableOpacity
-      style={styles.redeemButton}
-      onPress={() => navigation.navigate('RedemptionCode', { reward })}
-      activeOpacity={0.85}
+      style={[styles.redeemButton, isExpired && styles.redeemButtonDisabled]}
+      onPress={() => !isExpired && navigation.navigate('RedemptionCode', { reward })}
+      activeOpacity={isExpired ? 1 : 0.85}
     >
-      <Text style={styles.redeemButtonText}>Tap to Redeem</Text>
+      <Text style={styles.redeemButtonText}>{isExpired ? 'Reward Expired' : 'Tap to Redeem'}</Text>
     </TouchableOpacity>
   );
 
@@ -149,6 +151,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     marginBottom: 12,
+  },
+  redeemButtonDisabled: {
+    backgroundColor: '#9ca3af',
   },
   redeemButtonText: {
     fontSize: 16,

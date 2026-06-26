@@ -2,7 +2,7 @@ import { Component, useState } from 'react';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Platform, View } from 'react-native';
+import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { AuthProvider, useAuth } from './AuthContext';
 import { recordError } from './crashlytics';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,13 +31,37 @@ import WebHeader from './components/WebHeader';
 export const navigationRef = createNavigationContainerRef();
 
 class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
   componentDidCatch(error) {
     recordError(error);
+    this.setState({ hasError: true });
   }
   render() {
+    if (this.state.hasError) {
+      return (
+        <View style={errorStyles.container}>
+          <Text style={errorStyles.title}>Something went wrong</Text>
+          <Text style={errorStyles.body}>Please restart the app. If the problem persists, contact support.</Text>
+          <TouchableOpacity style={errorStyles.button} onPress={() => this.setState({ hasError: false })}>
+            <Text style={errorStyles.buttonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
     return this.props.children;
   }
 }
+
+const errorStyles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: '#f4f6f9' },
+  title: { fontSize: 20, fontWeight: '700', color: '#1a2a4a', marginBottom: 12 },
+  body: { fontSize: 15, color: '#666', textAlign: 'center', lineHeight: 24, marginBottom: 32 },
+  button: { backgroundColor: '#1a73e8', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 32 },
+  buttonText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+});
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();

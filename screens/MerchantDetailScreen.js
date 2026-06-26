@@ -15,6 +15,7 @@ export default function MerchantDetailScreen({ route }) {
   useEffect(() => {
     apiFetch('MerchantDetail', { MerchantId: merchantId, platformtype: 2 })
       .then(data => {
+        if (!data || data.length === 0) { setError('Merchant not found.'); setLoading(false); return; }
         setMerchant(data[0]);
         setLoading(false);
       })
@@ -170,6 +171,7 @@ export default function MerchantDetailScreen({ route }) {
                 <Text style={styles.perkText}>{p.text}</Text>
               </View>
             ))}
+            {perks.length === 0 && <Text style={styles.noPerks}>No perks available.</Text>}
           </View>
         </>
       )}

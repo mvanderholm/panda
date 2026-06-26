@@ -9,18 +9,24 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleAuth = async () => {
+    const errs = {};
+    if (!email.trim()) errs.email = 'Email is required.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errs.email = 'Enter a valid email address.';
+    if (!password) errs.password = 'Password is required.';
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setErrors({});
     setLoading(true);
     try {
-      await login(email, password);
+      await login(email.trim(), password);
     } catch (err) {
       recordError(err);
       Alert.alert('Error', err.message);
     } finally {
       setLoading(false);
     }
-
   };
 
   return (
@@ -30,27 +36,31 @@ export default function LoginScreen({ navigation }) {
           <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.email && styles.inputError]}
             placeholder="Email address"
             placeholderTextColor="#9ca3af"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={v => { setEmail(v); setErrors(e => ({ ...e, email: undefined })); }}
             autoCapitalize="none"
             keyboardType="email-address"
+            autoComplete="email"
           />
-          <View style={styles.passwordRow}>
+          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+          <View style={[styles.passwordRow, errors.password && styles.inputError]}>
             <TextInput
               style={styles.passwordInput}
               placeholder="Password"
               placeholderTextColor="#9ca3af"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={v => { setPassword(v); setErrors(e => ({ ...e, password: undefined })); }}
               secureTextEntry={!showPassword}
+              autoComplete="current-password"
             />
             <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={styles.eyeButton}>
               <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
             </TouchableOpacity>
           </View>
+          {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
           <TouchableOpacity style={styles.button} onPress={handleAuth} disabled={loading}>
             {loading
@@ -77,8 +87,10 @@ const styles = StyleSheet.create({
   container: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   card: { backgroundColor: 'white', borderRadius: 16, padding: 32, width: '100%', maxWidth: 420, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
   logo: { width: 200, height: 80, alignSelf: 'center', marginBottom: 24 },
-  input: { borderWidth: 1.5, borderColor: '#e0e0e0', borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 16 },
-  passwordRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#e0e0e0', borderRadius: 8, marginBottom: 12 },
+  input: { borderWidth: 1.5, borderColor: '#e0e0e0', borderRadius: 8, padding: 12, marginBottom: 4, fontSize: 16 },
+  inputError: { borderColor: '#d32f2f' },
+  errorText: { fontSize: 12, color: '#d32f2f', marginBottom: 10, marginTop: 0 },
+  passwordRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#e0e0e0', borderRadius: 8, marginBottom: 4 },
   passwordInput: { flex: 1, padding: 12, fontSize: 16 },
   eyeButton: { paddingHorizontal: 12 },
   eyeText: { color: '#1a73e8', fontSize: 13, fontWeight: '600' },

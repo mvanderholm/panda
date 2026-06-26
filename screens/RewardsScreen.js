@@ -41,14 +41,21 @@ export default function RewardsScreen({ navigation }) {
   );
 
   const grouped = rewards.reduce((acc, reward) => {
-    const key = reward.NAME;
-    if (!acc[key]) acc[key] = { name: key, merchantId: reward.MERCHANT_ID, division: reward.DIVISION, rewards: [] };
+    const key = reward.MERCHANT_ID;
+    if (!acc[key]) acc[key] = { name: reward.NAME, merchantId: reward.MERCHANT_ID, division: reward.DIVISION, rewards: [] };
     acc[key].rewards.push(reward);
     return acc;
   }, {});
 
   const groups = Object.values(grouped);
   const numColumns = isDesktop ? 3 : isWide ? 2 : 1;
+
+  if (groups.length === 0) return (
+    <View style={styles.centered}>
+      <Text style={styles.emptyTitle}>No rewards yet</Text>
+      <Text style={styles.emptyBody}>Visit a participating merchant to start earning rewards.</Text>
+    </View>
+  );
 
   const RewardCard = ({ reward, merchantId }) => {
     const colors = CAMPAIGN_COLORS[reward.CAMPAIGNTYPE] || { bg: '#f5f5f5', border: '#e0e0e0', badge: '#555' };
@@ -122,7 +129,7 @@ export default function RewardsScreen({ navigation }) {
       ) : (
         <FlatList
           data={groups}
-          keyExtractor={item => item.name}
+          keyExtractor={item => String(item.merchantId)}
           renderItem={({ item }) => <MerchantGroup group={item} />}
           contentContainerStyle={{ paddingBottom: 20 }}
         />
@@ -136,6 +143,8 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: 'red' },
 
+  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#1a2a4a', marginBottom: 8 },
+  emptyBody: { fontSize: 14, color: '#888', textAlign: 'center', paddingHorizontal: 32, lineHeight: 22 },
   subtitle: { color: '#666', fontSize: 14, marginBottom: 10 },
   subtitleWide: { maxWidth: 1200, alignSelf: 'center', width: '100%' },
 

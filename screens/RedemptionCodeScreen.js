@@ -8,7 +8,15 @@ export default function RedemptionCodeScreen({ route }) {
   const { reward } = route.params;
   const { isWide } = useBreakpoint();
   const [mode, setMode] = useState('barcode');
-  const codeValue = String(reward.DETAIL_ID).replace(/\D/g, '');
+  const codeValue = reward.DETAIL_ID != null ? String(reward.DETAIL_ID).replace(/\D/g, '') : '';
+
+  if (!codeValue) return (
+    <View style={styles.container}>
+      <Text style={styles.merchantName}>{reward.NAME}</Text>
+      <Text style={styles.offer}>{reward.OFFER}</Text>
+      <Text style={{ color: '#888', marginTop: 32, textAlign: 'center' }}>Redemption code unavailable. Please contact support.</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>

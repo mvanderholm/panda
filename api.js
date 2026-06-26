@@ -8,7 +8,12 @@ export async function apiFetch(method, params = {}) {
     ...params
   });
 
-  const response = await fetch(`${CF_BASE_URL}?${queryParams}`);
+  let response;
+  try {
+    response = await fetch(`${CF_BASE_URL}?${queryParams}`);
+  } catch (_) {
+    throw new Error('Unable to connect. Please check your connection and try again.');
+  }
   const rawText = await response.text();
   const cleanText = rawText.replace(/--->/g, '').replace(/F$/, '').trim();
 

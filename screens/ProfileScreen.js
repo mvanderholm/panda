@@ -49,7 +49,7 @@ export default function ProfileScreen({ navigation }) {
 
   useEffect(() => {
     if (!customerId) return;
-    apiFetch('GetMemberProfile', { CustomerId: customerId, platformtype: 2 })
+    apiFetch('GetMemberProfile', { CustomerID: customerId, platformtype: 2, returnformat: 'json' })
       .then(data => { setMember(data[0]); setLoading(false); })
       .catch(err => { recordError(err); setError(err.message); setLoading(false); });
   }, [customerId]);
@@ -111,7 +111,7 @@ export default function ProfileScreen({ navigation }) {
       // Re-fetch the updated profile; if it fails, patch local state from
       // the edited values so the display is still correct.
       try {
-        const refreshed = await apiFetch('GetMemberProfile', { CustomerId: customerId, platformtype: 2 });
+        const refreshed = await apiFetch('GetMemberProfile', { CustomerID: customerId, platformtype: 2, returnformat: 'json' });
         if (refreshed?.[0]) setMember(refreshed[0]);
       } catch (_) {
         setMember(prev => ({
