@@ -152,11 +152,12 @@ export default function EnrollmentScreen({ navigation }) {
         country: 'US',
         BD1_Month: birthMonth,
         gender,
-        market_id: 0,
+        market_id: 1,
         PlatformType: 2,
       });
 
-      const data = typeof result === 'string' ? JSON.parse(result) : result;
+      const raw = typeof result === 'string' ? JSON.parse(result) : result;
+      const data = Array.isArray(raw) ? raw[0] : raw;
 
       if (data?.type === 2) {
         // Success — persist CustomerID if present and navigate to success state
