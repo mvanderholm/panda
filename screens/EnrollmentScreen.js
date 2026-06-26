@@ -159,28 +159,29 @@ export default function EnrollmentScreen({ navigation }) {
       const raw = typeof result === 'string' ? JSON.parse(result) : result;
       const data = Array.isArray(raw) ? raw[0] : raw;
 
-      if (data?.type === 2) {
-        // Success — persist CustomerID if present and navigate to success state
-        analytics.track('SignupSuccess', {
-          email: email.trim(),
-          CustomerID: data.CustomerID ?? data.CUSTOMER_ID ?? null,
-        });
+      // CF returns UPPERCASE keys — normalise before checking
+      const type = data?.type ?? data?.TYPE;
+      const description = data?.description ?? data?.DESCRIPTION ?? '';
+      const customerId = data?.CustomerID ?? data?.CUSTOMER_ID ?? data?.CUSTOMERID ?? null;
+
+      if (type === 2) {
+        analytics.track('SignupSuccess', { email: email.trim(), CustomerID: customerId });
         setStep('success');
-      } else if (data?.type === 5) {
+      } else if (type === 5) {
         analytics.track('SignupFailed', {
-          code: data.code ?? 'already_registered',
-          description: data.description ?? 'Customer already exists',
+          code: data?.code ?? data?.CODE ?? 'already_registered',
+          description: description || 'Customer already exists',
         });
         Alert.alert(
           'Already registered',
           'An account with that email address already exists. Please sign in instead.',
         );
       } else {
-        const code = data?.code ?? `type_${data?.type}`;
-        const description = data?.description || `Server returned an unexpected response (${code}). Please try again.`;
+        const code = data?.code ?? data?.CODE ?? `type_${type}`;
+        const msg = description || `Server returned an unexpected response (${code}). Please try again.`;
         recordError(new Error(`[Enrollment] failure response: ${JSON.stringify(data)}`));
-        analytics.track('SignupFailed', { code, description });
-        Alert.alert('Enrollment failed', description);
+        analytics.track('SignupFailed', { code, description: msg });
+        Alert.alert('Enrollment failed', msg);
       }
     } catch (err) {
       recordError(err);
