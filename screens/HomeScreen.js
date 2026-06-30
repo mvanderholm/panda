@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../AuthContext';
 import { apiFetch } from '../api';
 import { recordError } from '../crashlytics';
 import analytics from '../analytics';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import OnboardingModal from '../components/OnboardingModal';
 
 const NAV_ITEMS = [
   { label: 'Merchants',   icon: 'storefront-outline', screen: 'Merchants'  },
@@ -21,8 +23,15 @@ export default function HomeScreen({ navigation }) {
   const { isWide, isDesktop } = useBreakpoint();
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => { analytics.screen('Home'); }, []);
+
+  useEffect(() => {
+    AsyncStorage.getItem('onboarding_complete').then(val => {
+      if (!val) setShowOnboarding(true);
+    });
+  }, []);
 
   useEffect(() => {
     if (!customerId) return;
@@ -37,61 +46,62 @@ export default function HomeScreen({ navigation }) {
   const firstName = member?.FIRST || user?.split('@')[0] || 'Member';
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, isWide && styles.contentWide]}>
+    <>
+      <OnboardingModal visible={showOnboarding} onDismiss={() => setShowOnboarding(false)} />
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, isWide && styles.contentWide]}>
 
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 16 }, isWide && styles.headerWide]}>
-        <Image source={require('../assets/logo.png')} style={[styles.logo, isWide && styles.logoWide]} resizeMode="contain" />
-        <View style={styles.divider} />
-        <Text style={styles.greeting}>Welcome back,</Text>
-        {loading
-          ? <ActivityIndicator color="#1a2a4a" style={{ marginTop: 4 }} />
-          : <Text style={[styles.name, isWide && styles.nameWide]}>{firstName}</Text>
-        }
-      </View>
-
-      {/* Quick access */}
-      <Text style={styles.sectionTitle}>Quick Access</Text>
-
-      {isWide ? (
-        // Wide: 2-column card grid
-        <View style={styles.grid}>
-          {NAV_ITEMS.map(item => (
-            <TouchableOpacity
-              key={item.screen}
-              style={styles.gridCard}
-              onPress={() => navigation.navigate(item.screen)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.gridIconWrap}>
-                <Ionicons name={item.icon} size={28} color="#1a73e8" />
-              </View>
-              <Text style={styles.gridLabel}>{item.label}</Text>
-              <Ionicons name="chevron-forward" size={16} color="#ccc" style={styles.gridChevron} />
-            </TouchableOpacity>
-          ))}
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: insets.top + 16 }, isWide && styles.headerWide]}>
+          <Image source={require('../assets/logo.png')} style={[styles.logo, isWide && styles.logoWide]} resizeMode="contain" />
+          <View style={styles.divider} />
+          <Text style={styles.greeting}>Welcome back,</Text>
+          {loading
+            ? <ActivityIndicator color="#1a2a4a" style={{ marginTop: 4 }} />
+            : <Text style={[styles.name, isWide && styles.nameWide]}>{firstName}</Text>
+          }
         </View>
-      ) : (
-        // Narrow: vertical list
-        <View style={styles.list}>
-          {NAV_ITEMS.map((item, index) => (
-            <TouchableOpacity
-              key={item.screen}
-              style={[styles.row, index === NAV_ITEMS.length - 1 && styles.rowLast]}
-              onPress={() => navigation.navigate(item.screen)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.iconWrap}>
-                <Ionicons name={item.icon} size={22} color="#1a73e8" />
-              </View>
-              <Text style={styles.rowLabel}>{item.label}</Text>
-              <Ionicons name="chevron-forward" size={18} color="#ccc" />
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
 
-    </ScrollView>
+        {/* Quick access */}
+        <Text style={styles.sectionTitle}>Quick Access</Text>
+
+        {isWide ? (
+          <View style={styles.grid}>
+            {NAV_ITEMS.map(item => (
+              <TouchableOpacity
+                key={item.screen}
+                style={styles.gridCard}
+                onPress={() => navigation.navigate(item.screen)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.gridIconWrap}>
+                  <Ionicons name={item.icon} size={28} color="#1a73e8" />
+                </View>
+                <Text style={styles.gridLabel}>{item.label}</Text>
+                <Ionicons name="chevron-forward" size={16} color="#ccc" style={styles.gridChevron} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.list}>
+            {NAV_ITEMS.map((item, index) => (
+              <TouchableOpacity
+                key={item.screen}
+                style={[styles.row, index === NAV_ITEMS.length - 1 && styles.rowLast]}
+                onPress={() => navigation.navigate(item.screen)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.iconWrap}>
+                  <Ionicons name={item.icon} size={22} color="#1a73e8" />
+                </View>
+                <Text style={styles.rowLabel}>{item.label}</Text>
+                <Ionicons name="chevron-forward" size={18} color="#ccc" />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+      </ScrollView>
+    </>
   );
 }
 
@@ -136,7 +146,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
 
-  // Narrow list
   list: {
     backgroundColor: '#ffffff',
     borderRadius: 14,
@@ -168,7 +177,6 @@ const styles = StyleSheet.create({
   },
   rowLabel: { flex: 1, fontSize: 15, fontWeight: '500', color: '#1a1a1a' },
 
-  // Wide grid
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
