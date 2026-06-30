@@ -52,14 +52,6 @@ export default function RewardsScreen({ navigation }) {
     loadData().finally(() => setRefreshing(false));
   }, [loadData]);
 
-  if (loading) return (
-    <View style={styles.centered}><ActivityIndicator size="large" color="#1a73e8" /></View>
-  );
-
-  if (error) return (
-    <View style={styles.centered}><Text style={styles.error}>{error}</Text></View>
-  );
-
   const grouped = rewards.reduce((acc, reward) => {
     const key = reward.MERCHANT_ID;
     if (!acc[key]) acc[key] = { name: reward.NAME, merchantId: reward.MERCHANT_ID, division: reward.DIVISION, rewards: [] };
@@ -73,6 +65,14 @@ export default function RewardsScreen({ navigation }) {
     [rewards]
   );
   const groups = filterMerchant ? allGroups.filter(g => g.merchantId === filterMerchant) : allGroups;
+
+  if (loading) return (
+    <View style={styles.centered}><ActivityIndicator size="large" color="#1a73e8" /></View>
+  );
+
+  if (error) return (
+    <View style={styles.centered}><Text style={styles.error}>{error}</Text></View>
+  );
   const numColumns = isDesktop ? 3 : isWide ? 2 : 1;
 
   if (groups.length === 0) return (

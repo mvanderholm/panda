@@ -32,7 +32,7 @@ const GENDERS = [
 ];
 
 export default function ProfileScreen({ navigation }) {
-  const { customerId, logout } = useAuth();
+  const { customerId, user, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const { isWide } = useBreakpoint();
   const [activeTab, setActiveTab] = useState('Profile');
@@ -217,6 +217,17 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const txMerchants = useMemo(() => {
+    const seen = new Map();
+    transactions.forEach(t => { if (t.MERCHANT_ID && !seen.has(t.MERCHANT_ID)) seen.set(t.MERCHANT_ID, t.NAME); });
+    return Array.from(seen, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [transactions]);
+
+  const filteredTransactions = useMemo(
+    () => txFilterMerchant ? transactions.filter(t => t.MERCHANT_ID === txFilterMerchant) : transactions,
+    [transactions, txFilterMerchant]
+  );
+
   if (loading) return (
     <View style={styles.centered}><ActivityIndicator size="large" color="#1a73e8" /></View>
   );
@@ -382,16 +393,6 @@ export default function ProfileScreen({ navigation }) {
       )}
     </View>
   );
-
-  const txMerchants = useMemo(() => {
-    const seen = new Map();
-    transactions.forEach(t => { if (t.MERCHANT_ID && !seen.has(t.MERCHANT_ID)) seen.set(t.MERCHANT_ID, t.NAME); });
-    return Array.from(seen, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [transactions]);
-
-  const filteredTransactions = txFilterMerchant
-    ? transactions.filter(t => t.MERCHANT_ID === txFilterMerchant)
-    : transactions;
 
   const renderTransactionsTab = () => (
     <View style={styles.tabContent}>
