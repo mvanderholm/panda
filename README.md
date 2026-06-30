@@ -1,4 +1,4 @@
-# Panda Mobile
+# PinPoint Mobile
 
 A mobile loyalty rewards app that helps consumers discover local merchants, earn points through purchases, and manage their rewards.
 
@@ -32,7 +32,7 @@ A mobile loyalty rewards app that helps consumers discover local merchants, earn
 ## Project Structure
 
 ```
-panda-mobile/
+pinpoint-mobile/
 ├── App.js                      # Root component, navigation setup
 ├── AuthContext.js              # Auth state & customerId context
 ├── api.js                      # Backend API wrapper (ColdFusion CFC)
