@@ -1,49 +1,54 @@
-import { ScrollView, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
 
 export default function MerchantFilterChips({ merchants, selected, onChange }) {
   if (!merchants || merchants.length < 2) return null;
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
-    >
-      <TouchableOpacity
-        style={[styles.chip, !selected && styles.chipActive]}
-        onPress={() => onChange(null)}
-        activeOpacity={0.7}
+    <View style={styles.wrapper}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.container}
       >
-        <Text style={[styles.chipText, !selected && styles.chipTextActive]}>All</Text>
-      </TouchableOpacity>
-
-      {merchants.map(m => (
         <TouchableOpacity
-          key={m.id}
-          style={[styles.chip, selected === m.id && styles.chipActive]}
-          onPress={() => onChange(selected === m.id ? null : m.id)}
+          style={[styles.chip, !selected && styles.chipActive]}
+          onPress={() => onChange(null)}
           activeOpacity={0.7}
         >
-          {m.id && (
-            <Image
-              source={{ uri: `https://www.eport9.com/pinpoint/images/logos/${m.id}_7.gif` }}
-              style={styles.chipLogo}
-              resizeMode="contain"
-            />
-          )}
-          <Text style={[styles.chipText, selected === m.id && styles.chipTextActive]} numberOfLines={1}>
-            {m.name}
-          </Text>
+          <Text style={[styles.chipText, !selected && styles.chipTextActive]}>All</Text>
         </TouchableOpacity>
-      ))}
-    </ScrollView>
+
+        {merchants.map(m => (
+          <TouchableOpacity
+            key={m.id}
+            style={[styles.chip, selected === m.id && styles.chipActive]}
+            onPress={() => onChange(selected === m.id ? null : m.id)}
+            activeOpacity={0.7}
+          >
+            {m.id && (
+              <Image
+                source={{ uri: `https://www.eport9.com/pinpoint/images/logos/${m.id}_7.gif` }}
+                style={styles.chipLogo}
+                resizeMode="contain"
+              />
+            )}
+            <Text style={[styles.chipText, selected === m.id && styles.chipTextActive]} numberOfLines={1}>
+              {m.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    paddingVertical: 8,
+  },
   container: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    alignItems: 'center',
     gap: 8,
   },
   chip: {

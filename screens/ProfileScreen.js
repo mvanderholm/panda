@@ -76,7 +76,7 @@ export default function ProfileScreen({ navigation }) {
     setPointsLoading(true);
     setPointsError('');
     apiFetch('PointsAccumulated', { CustomerId: customerId, platformtype: 2 })
-      .then(data => { setPoints(data); setPointsLoading(false); })
+      .then(data => { setPoints(Array.isArray(data) ? data : []); setPointsLoading(false); })
       .catch(err => { recordError(err); setPointsError('Could not load points. Pull down to retry.'); setPointsLoading(false); });
   }, [activeTab]);
 
@@ -85,7 +85,7 @@ export default function ProfileScreen({ navigation }) {
     setTxLoading(true);
     setTxError('');
     apiFetch('RecentTransactions', { CustomerId: customerId, platformtype: 2 })
-      .then(data => { setTransactions(data); setTxLoading(false); })
+      .then(data => { setTransactions(Array.isArray(data) ? data : []); setTxLoading(false); })
       .catch(err => { recordError(err); setTxError('Could not load transactions. Pull down to retry.'); setTxLoading(false); });
   }, [activeTab]);
 
@@ -103,7 +103,7 @@ export default function ProfileScreen({ navigation }) {
     setPointsError('');
     try {
       const data = await apiFetch('PointsAccumulated', { CustomerId: customerId, platformtype: 2 });
-      setPoints(data);
+      setPoints(Array.isArray(data) ? data : []);
     } catch (err) { recordError(err); setPointsError('Could not load points. Pull down to retry.'); }
     finally { setPointsRefreshing(false); }
   }, [customerId]);
@@ -113,7 +113,7 @@ export default function ProfileScreen({ navigation }) {
     setTxError('');
     try {
       const data = await apiFetch('RecentTransactions', { CustomerId: customerId, platformtype: 2 });
-      setTransactions(data);
+      setTransactions(Array.isArray(data) ? data : []);
     } catch (err) { recordError(err); setTxError('Could not load transactions. Pull down to retry.'); }
     finally { setTxRefreshing(false); }
   }, [customerId]);
