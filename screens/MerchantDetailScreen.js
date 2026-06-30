@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image, TouchableOpacity, Linking, Platform } from 'react-native';
 import { apiFetch } from '../api';
 import { recordError } from '../crashlytics';
+import analytics from '../analytics';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 export default function MerchantDetailScreen({ route }) {
@@ -12,23 +13,29 @@ export default function MerchantDetailScreen({ route }) {
   const [error, setError] = useState('');
   const [aboutExpanded, setAboutExpanded] = useState(false);
 
-  useEffect(() => {
-    apiFetch('MerchantDetail', { MerchantId: merchantId, platformtype: 2 })
-      .then(data => {
-        if (!data || data.length === 0) { setError('Merchant not found.'); setLoading(false); return; }
-        setMerchant(data[0]);
-        setLoading(false);
-      })
-      .catch(err => {
-        recordError(err);
-        setError(err.message);
-        setLoading(false);
-      });
+  useEffect(() => { analytics.screen('MerchantDetail'); }, []);
+
+  const loadMerchant = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiFetch('MerchantDetail', { MerchantId: merchantId, platformtype: 2 });
+      if (!data || data.length === 0) { setError('Merchant not found.'); return; }
+      setMerchant(data[0]);
+    } catch (err) {
+      recordError(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [merchantId]);
+
+  useEffect(() => { loadMerchant(); }, [loadMerchant]);
 
   const openMap = () => {
     const addr = encodeURIComponent(
-      `${merchant.ADDRESS}, ${merchant.CITY}, ${merchant.STATE} ${merchant.ZIP?.trim()}`
+      [merchant.ADDRESS, merchant.CITY, merchant.STATE, merchant.ZIP?.trim()]
+        .filter(Boolean).join(', ')
     );
     if (Platform.OS === 'web') {
       Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${addr}`);
@@ -52,6 +59,9 @@ export default function MerchantDetailScreen({ route }) {
   if (error) return (
     <View style={styles.centered}>
       <Text style={styles.error}>{error}</Text>
+      <TouchableOpacity style={styles.retryBtn} onPress={loadMerchant}>
+        <Text style={styles.retryText}>Try Again</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -88,13 +98,13 @@ export default function MerchantDetailScreen({ route }) {
               />
               <Text style={styles.merchantName}>{merchant.NAME}</Text>
               <Text style={styles.address}>
-                {merchant.ADDRESS}, {merchant.CITY}, {merchant.STATE} {merchant.ZIP?.trim()}
+                {[merchant.ADDRESS, merchant.CITY, merchant.STATE, merchant.ZIP?.trim()].filter(Boolean).join(', ')}
               </Text>
               <TouchableOpacity style={styles.mapLink} onPress={openMap}>
                 <Text style={styles.mapLinkText}>View on Map ↗</Text>
               </TouchableOpacity>
               {doublePoints === 1 && (
-                <Image source={require('../assets/BP2X.png')} style={styles.doubleBadge} resizeMode="contain" title="Double Points" />
+                <Image source={require('../assets/BP2X.png')} style={styles.doubleBadge} resizeMode="contain" />
               )}
             </View>
 
@@ -144,7 +154,7 @@ export default function MerchantDetailScreen({ route }) {
               <Text style={styles.mapLinkText}>View on Map</Text>
             </TouchableOpacity>
             {doublePoints === 1 && (
-              <Image source={require('../assets/BP2X.png')} style={styles.doubleBadge} resizeMode="contain" title="Double Points" />
+              <Image source={require('../assets/BP2X.png')} style={styles.doubleBadge} resizeMode="contain" />
             )}
           </View>
 
@@ -184,6 +194,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f4f6f9' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: 'red' },
+  retryBtn: { marginTop: 16, paddingVertical: 10, paddingHorizontal: 24, backgroundColor: '#1a73e8', borderRadius: 8 },
+  retryText: { color: 'white', fontWeight: '600', fontSize: 15 },
 
   content: { paddingBottom: 32 },
   contentWide: { maxWidth: 1100, alignSelf: 'center', width: '100%', padding: 24 },
@@ -240,15 +252,15 @@ const styles = StyleSheet.create({
   perkCard: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#ebf5e3',
+    backgroundColor: '#f5f5f5',
     borderWidth: 1,
-    borderColor: '#d8edc7',
+    borderColor: '#e0e0e0',
     marginBottom: 8,
   },
-  perkCardWelcome: { backgroundColor: '#ebf5e3', borderColor: '#d8edc7' },
-  perkCardPayback: { backgroundColor: '#ebf5e3', borderColor: '#d8edc7' },
-  perkCardBirthday: { backgroundColor: '#ebf5e3', borderColor: '#d8edc7' },
-  perkCardAnniversary: { backgroundColor: '#ebf5e3', borderColor: '#d8edc7' },
+  perkCardWelcome:     { backgroundColor: '#e3f2fd', borderColor: '#bbdefb' },
+  perkCardPayback:     { backgroundColor: '#fff8e1', borderColor: '#ffecb3' },
+  perkCardBirthday:    { backgroundColor: '#fce4ec', borderColor: '#f8bbd0' },
+  perkCardAnniversary: { backgroundColor: '#ede7f6', borderColor: '#d1c4e9' },
   perkLabel: { fontSize: 12, fontWeight: '700', color: '#555', marginBottom: 4 },
   perkText: { fontSize: 14, color: '#333', lineHeight: 20 },
   noPerks: { fontSize: 14, color: '#888' },

@@ -41,6 +41,7 @@
       "./plugins/withRNFirebaseStaticFramework",
       "@react-native-firebase/app",
       "@react-native-firebase/crashlytics",
+      "expo-screen-orientation",
       [
         "expo-build-properties",
         {

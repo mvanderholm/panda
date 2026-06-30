@@ -1,11 +1,12 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Image, TextInput, ScrollView,
+  ActivityIndicator, Image, TextInput, ScrollView, RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch, getDivisions } from '../api';
 import { recordError } from '../crashlytics';
+import analytics from '../analytics';
 import { useAuth } from '../AuthContext';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
@@ -15,6 +16,7 @@ export default function MerchantsScreen({ navigation }) {
   const [merchants, setMerchants] = useState([]);
   const [divisions, setDivisions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [activeDivision, setActiveDivision] = useState(null);
@@ -22,23 +24,32 @@ export default function MerchantsScreen({ navigation }) {
   // Number of columns for the grid on wide screens
   const numColumns = isDesktop ? 3 : isWide ? 2 : 1;
 
+  useEffect(() => { analytics.screen('Merchants'); }, []);
+
+  const loadData = useCallback(async () => {
+    try {
+      const [merchantData, divisionData] = await Promise.all([
+        apiFetch('MerchantListing', { sMarket: marketId }),
+        getDivisions(),
+      ]);
+      setMerchants(merchantData);
+      const usedDivisions = new Set(merchantData.map(m => m.DIVISION_NAME));
+      setDivisions((divisionData || []).filter(d => usedDivisions.has(d.DIVISION_NAME)));
+      setError('');
+    } catch (err) {
+      recordError(err);
+      setError(err.message);
+    }
+  }, [marketId]);
+
   useEffect(() => {
-    Promise.all([
-      apiFetch('MerchantListing', { sMarket: marketId }),
-      getDivisions(),
-    ])
-      .then(([merchantData, divisionData]) => {
-        setMerchants(merchantData);
-        const usedDivisions = new Set(merchantData.map(m => m.DIVISION_NAME));
-        setDivisions((divisionData || []).filter(d => usedDivisions.has(d.DIVISION_NAME)));
-        setLoading(false);
-      })
-      .catch(err => {
-        recordError(err);
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+    loadData().finally(() => setLoading(false));
+  }, [loadData]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadData().finally(() => setRefreshing(false));
+  }, [loadData]);
 
   const filtered = useMemo(() => {
     let result = merchants;
@@ -64,6 +75,12 @@ export default function MerchantsScreen({ navigation }) {
   if (error) return (
     <View style={styles.centered}>
       <Text style={styles.error}>{error}</Text>
+      <TouchableOpacity
+        style={styles.retryBtn}
+        onPress={() => { setLoading(true); loadData().finally(() => setLoading(false)); }}
+      >
+        <Text style={styles.retryText}>Try Again</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -86,7 +103,7 @@ export default function MerchantsScreen({ navigation }) {
             <View style={styles.locationRow}>
               <Text style={styles.location}>{item.CONSUMER_SITE_DISPLAY}</Text>
               {item.DOUBLE_POINTS === 1 && (
-                <Image source={require('../assets/BP2X.png')} style={styles.doubleBadge} resizeMode="contain" title="Double Points" />
+                <Image source={require('../assets/BP2X.png')} style={styles.doubleBadge} resizeMode="contain" />
               )}
             </View>
           </View>
@@ -163,7 +180,10 @@ export default function MerchantsScreen({ navigation }) {
 
       {isWide ? (
         // Wide: grid via ScrollView + flexWrap
-        <ScrollView contentContainerStyle={[styles.gridContainer, isWide && styles.gridContainerWide]}>
+        <ScrollView
+          contentContainerStyle={[styles.gridContainer, isWide && styles.gridContainerWide]}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
           <View style={[styles.grid, { gap: 12 }]}>
             {filtered.length === 0 ? (
               <View style={styles.emptyContainer}>
@@ -188,6 +208,7 @@ export default function MerchantsScreen({ navigation }) {
           keyExtractor={item => item.MERCHANT_ID.toString()}
           renderItem={({ item }) => <MerchantCard item={item} />}
           contentContainerStyle={{ paddingBottom: 20 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No merchants match your search.</Text>
@@ -206,6 +227,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f4f6f9', paddingTop: 12 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: 'red' },
+  retryBtn: { marginTop: 16, paddingVertical: 10, paddingHorizontal: 24, backgroundColor: '#1a73e8', borderRadius: 8 },
+  retryText: { color: 'white', fontWeight: '600', fontSize: 15 },
 
   controls: { paddingHorizontal: 0 },
   controlsWide: { maxWidth: 1200, alignSelf: 'center', width: '100%' },

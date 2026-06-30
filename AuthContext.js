@@ -13,6 +13,13 @@ export function AuthProvider({ children }) {
   const [marketId, setMarketId] = useState(1);
   const [loading, setLoading] = useState(true);
 
+  // Record first launch date for app rating prompt gating
+  useEffect(() => {
+    AsyncStorage.getItem('first_launch_date').then(date => {
+      if (!date) AsyncStorage.setItem('first_launch_date', String(Date.now()));
+    });
+  }, []);
+
   // CFC auth: restore session from storage on mount
   useEffect(() => {
     AsyncStorage.getItem('cfc_session')
@@ -24,7 +31,10 @@ export function AuthProvider({ children }) {
           if (session.marketId) setMarketId(session.marketId);
         }
       })
-      .catch(err => recordError(err))
+      .catch(err => {
+        recordError(err);
+        AsyncStorage.removeItem('cfc_session');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -43,7 +53,7 @@ export function AuthProvider({ children }) {
       const profile = await getMemberProfile(id);
       const p = Array.isArray(profile) ? profile[0] : profile;
       market = p?.MARKET_ID ?? 1;
-    } catch (_) {}
+    } catch (err) { recordError(err); }
 
     await AsyncStorage.setItem('cfc_session', JSON.stringify({ user: email, customerId: id, marketId: market }));
     setUser(email);

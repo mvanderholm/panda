@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image, KeyboardAvoidingView, ScrollView, Platform, Linking } from 'react-native';
 import { useAuth } from '../AuthContext';
 import { recordError } from '../crashlytics';
+import analytics from '../analytics';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
@@ -10,6 +11,8 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => { analytics.screen('Login'); }, []);
 
   const handleAuth = async () => {
     const errs = {};
@@ -23,7 +26,25 @@ export default function LoginScreen({ navigation }) {
       await login(email.trim(), password);
     } catch (err) {
       recordError(err);
-      Alert.alert('Error', err.message);
+      if (err.message?.includes('Look up failed')) {
+        Alert.alert(
+          'Sign In Failed',
+          'We couldn\'t find your account. If you recently registered, please check your email for a verification link before signing in.',
+          [
+            { text: 'OK', style: 'cancel' },
+            {
+              text: 'Resend Verification',
+              onPress: () => {
+                const subject = encodeURIComponent('Resend Verification Email');
+                const body = encodeURIComponent(`Please resend my verification email.\n\nAccount email: ${email.trim()}`);
+                Linking.openURL(`mailto:info@pinpointrewards.com?subject=${subject}&body=${body}`);
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Sign In Failed', err.message);
+      }
     } finally {
       setLoading(false);
     }

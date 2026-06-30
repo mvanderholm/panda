@@ -1,16 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, ActivityIndicator,
-  TouchableOpacity, Alert, Linking, FlatList, TextInput,
+  TouchableOpacity, Alert, Linking, FlatList, TextInput, RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { useAuth } from '../AuthContext';
 import { apiFetch, updateProfile } from '../api';
 import { recordError } from '../crashlytics';
+import analytics from '../analytics';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import MerchantFilterChips from '../components/MerchantFilterChips';
 
 const TABS = ['Profile', 'My Points', 'Transactions', 'Contact'];
+
+const formatPhone = (raw) => {
+  const digits = raw.replace(/\D/g, '').slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+};
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -34,7 +43,13 @@ export default function ProfileScreen({ navigation }) {
   const [pointsLoading, setPointsLoading] = useState(false);
   const [txLoading, setTxLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pointsError, setPointsError] = useState('');
+  const [txError, setTxError] = useState('');
 
+  const [profileRefreshing, setProfileRefreshing] = useState(false);
+  const [pointsRefreshing, setPointsRefreshing] = useState(false);
+  const [txRefreshing, setTxRefreshing] = useState(false);
+  const [txFilterMerchant, setTxFilterMerchant] = useState(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editFirst, setEditFirst] = useState('');
@@ -47,6 +62,8 @@ export default function ProfileScreen({ navigation }) {
   const [editBirthMonth, setEditBirthMonth] = useState(0);
   const [editGender, setEditGender] = useState(0);
 
+  useEffect(() => { analytics.screen('Profile'); }, []);
+
   useEffect(() => {
     if (!customerId) return;
     apiFetch('GetMemberProfile', { CustomerID: customerId, platformtype: 2, returnformat: 'json' })
@@ -57,18 +74,49 @@ export default function ProfileScreen({ navigation }) {
   useEffect(() => {
     if (activeTab !== 'My Points' || !customerId || points.length > 0) return;
     setPointsLoading(true);
+    setPointsError('');
     apiFetch('PointsAccumulated', { CustomerId: customerId, platformtype: 2 })
       .then(data => { setPoints(data); setPointsLoading(false); })
-      .catch(err => { recordError(err); setPointsLoading(false); });
+      .catch(err => { recordError(err); setPointsError('Could not load points. Pull down to retry.'); setPointsLoading(false); });
   }, [activeTab]);
 
   useEffect(() => {
     if (activeTab !== 'Transactions' || !customerId || transactions.length > 0) return;
     setTxLoading(true);
+    setTxError('');
     apiFetch('RecentTransactions', { CustomerId: customerId, platformtype: 2 })
       .then(data => { setTransactions(data); setTxLoading(false); })
-      .catch(err => { recordError(err); setTxLoading(false); });
+      .catch(err => { recordError(err); setTxError('Could not load transactions. Pull down to retry.'); setTxLoading(false); });
   }, [activeTab]);
+
+  const onRefreshProfile = useCallback(async () => {
+    setProfileRefreshing(true);
+    try {
+      const data = await apiFetch('GetMemberProfile', { CustomerID: customerId, platformtype: 2, returnformat: 'json' });
+      if (data?.[0]) setMember(data[0]);
+    } catch (err) { recordError(err); }
+    finally { setProfileRefreshing(false); }
+  }, [customerId]);
+
+  const onRefreshPoints = useCallback(async () => {
+    setPointsRefreshing(true);
+    setPointsError('');
+    try {
+      const data = await apiFetch('PointsAccumulated', { CustomerId: customerId, platformtype: 2 });
+      setPoints(data);
+    } catch (err) { recordError(err); setPointsError('Could not load points. Pull down to retry.'); }
+    finally { setPointsRefreshing(false); }
+  }, [customerId]);
+
+  const onRefreshTransactions = useCallback(async () => {
+    setTxRefreshing(true);
+    setTxError('');
+    try {
+      const data = await apiFetch('RecentTransactions', { CustomerId: customerId, platformtype: 2 });
+      setTransactions(data);
+    } catch (err) { recordError(err); setTxError('Could not load transactions. Pull down to retry.'); }
+    finally { setTxRefreshing(false); }
+  }, [customerId]);
 
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -77,10 +125,31 @@ export default function ProfileScreen({ navigation }) {
     ]);
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete your account and all your rewards data. This cannot be undone.\n\nA deletion request will be sent to our support team.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Request Deletion',
+          style: 'destructive',
+          onPress: () => {
+            const subject = encodeURIComponent('Account Deletion Request');
+            const body = encodeURIComponent(
+              `Please delete my PinPoint account.\n\nAccount email: ${user}\nCustomer ID: ${customerId}\n\nI understand this is permanent and cannot be undone.`
+            );
+            Linking.openURL(`mailto:info@pinpointrewards.com?subject=${subject}&body=${body}`);
+          },
+        },
+      ]
+    );
+  };
+
   const startEditing = () => {
     setEditFirst(member?.FIRST || '');
     setEditLast(member?.LAST || '');
-    setEditPhone(member?.PHONE2 || '');
+    setEditPhone(formatPhone(member?.PHONE2 || ''));
     setEditAddress(member?.ADDRESS || '');
     setEditCity(member?.CITY || '');
     setEditState(member?.STATE || '');
@@ -91,6 +160,18 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const handleSave = async () => {
+    if (!editFirst.trim()) {
+      Alert.alert('Required', 'First name cannot be empty.');
+      return;
+    }
+    if (!editLast.trim()) {
+      Alert.alert('Required', 'Last name cannot be empty.');
+      return;
+    }
+    if (editZip.trim() && !/^\d{5}(-\d{4})?$/.test(editZip.trim())) {
+      Alert.alert('Invalid ZIP', 'Please enter a valid ZIP code (e.g. 12345).');
+      return;
+    }
     setSaving(true);
     try {
       const params = {
@@ -149,7 +230,11 @@ export default function ProfileScreen({ navigation }) {
   // ---- Tab content renderers ----
 
   const renderProfileTab = () => (
-    <ScrollView style={styles.tabContent} contentContainerStyle={isWide && styles.tabContentWide}>
+    <ScrollView
+      style={styles.tabContent}
+      contentContainerStyle={isWide && styles.tabContentWide}
+      refreshControl={<RefreshControl refreshing={profileRefreshing} onRefresh={onRefreshProfile} />}
+    >
       {editing ? (
         <View style={isWide ? styles.editGrid : null}>
           <View style={[styles.section, isWide && styles.sectionWide]}>
@@ -169,7 +254,7 @@ export default function ProfileScreen({ navigation }) {
 
           <View style={[styles.section, isWide && styles.sectionWide]}>
             <Text style={styles.sectionTitle}>Contact</Text>
-            <TextInput style={styles.input} value={editPhone} onChangeText={setEditPhone} placeholder="Phone" keyboardType="phone-pad" accessibilityLabel="Phone number" />
+            <TextInput style={styles.input} value={editPhone} onChangeText={(t) => setEditPhone(formatPhone(t))} placeholder="Phone" keyboardType="phone-pad" accessibilityLabel="Phone number" />
             <TextInput style={styles.input} value={editAddress} onChangeText={setEditAddress} placeholder="Address" accessibilityLabel="Address" />
             <TextInput style={styles.input} value={editCity} onChangeText={setEditCity} placeholder="City" accessibilityLabel="City" />
             <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -254,6 +339,9 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity style={[styles.signOutBtn, isWide && { marginHorizontal: 0 }]} onPress={handleSignOut}>
               <Text style={styles.signOutText}>Sign Out</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={[styles.deleteAccountBtn, isWide && { marginHorizontal: 0 }]} onPress={handleDeleteAccount}>
+              <Text style={styles.deleteAccountText}>Delete Account</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )}
@@ -267,11 +355,12 @@ export default function ProfileScreen({ navigation }) {
       ) : (
         <FlatList
           data={points}
-          keyExtractor={(_, index) => index.toString()}
+          keyExtractor={(item, index) => item.MERCHANT_ID != null ? String(item.MERCHANT_ID) : String(index)}
           contentContainerStyle={[{ padding: 16, paddingBottom: 32 }, isWide && { maxWidth: 900, alignSelf: 'center', width: '100%' }]}
           numColumns={isWide ? 2 : 1}
           key={isWide ? 'wide' : 'narrow'}
           columnWrapperStyle={isWide ? { gap: 12 } : null}
+          refreshControl={<RefreshControl refreshing={pointsRefreshing} onRefresh={onRefreshPoints} />}
           renderItem={({ item }) => (
             <View style={[styles.pointsCard, isWide && { flex: 1 }]}>
               <View style={styles.pointsRow}>
@@ -280,15 +369,29 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <Text style={styles.pointsDivision}>{item.R_PERK}</Text>
               <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: `${Math.min((item.POINTS_EARNED / item.POINTS_NEEDED) * 100, 100)}%` }]} />
+                <View style={[styles.progressFill, { width: `${Math.min(item.POINTS_NEEDED > 0 ? (item.POINTS_EARNED / item.POINTS_NEEDED) * 100 : 0, 100)}%` }]} />
               </View>
             </View>
           )}
-          ListEmptyComponent={<Text style={styles.empty}>No points data available.</Text>}
+          ListEmptyComponent={
+            pointsError
+              ? <Text style={[styles.empty, { color: '#c62828' }]}>{pointsError}</Text>
+              : <Text style={styles.empty}>No points data available.</Text>
+          }
         />
       )}
     </View>
   );
+
+  const txMerchants = useMemo(() => {
+    const seen = new Map();
+    transactions.forEach(t => { if (t.MERCHANT_ID && !seen.has(t.MERCHANT_ID)) seen.set(t.MERCHANT_ID, t.NAME); });
+    return Array.from(seen, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [transactions]);
+
+  const filteredTransactions = txFilterMerchant
+    ? transactions.filter(t => t.MERCHANT_ID === txFilterMerchant)
+    : transactions;
 
   const renderTransactionsTab = () => (
     <View style={styles.tabContent}>
@@ -296,12 +399,20 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.centered}><ActivityIndicator size="large" color="#1a73e8" /></View>
       ) : (
         <FlatList
-          data={transactions}
-          keyExtractor={(_, index) => index.toString()}
+          data={filteredTransactions}
+          keyExtractor={(item, index) => item.TRAN_DATE ? `${item.TRAN_DATE}_${item.NAME || ''}_${index}` : String(index)}
           contentContainerStyle={[{ padding: 16, paddingBottom: 32 }, isWide && { maxWidth: 900, alignSelf: 'center', width: '100%' }]}
           numColumns={isWide ? 2 : 1}
           key={isWide ? 'wide' : 'narrow'}
           columnWrapperStyle={isWide ? { gap: 12 } : null}
+          refreshControl={<RefreshControl refreshing={txRefreshing} onRefresh={onRefreshTransactions} />}
+          ListHeaderComponent={
+            <MerchantFilterChips
+              merchants={txMerchants}
+              selected={txFilterMerchant}
+              onChange={setTxFilterMerchant}
+            />
+          }
           renderItem={({ item }) => (
             <View style={[styles.txCard, isWide && { flex: 1 }]}>
               <View style={styles.pointsRow}>
@@ -313,7 +424,11 @@ export default function ProfileScreen({ navigation }) {
               <Text style={styles.txDate}>{item.TRAN_DATE}</Text>
             </View>
           )}
-          ListEmptyComponent={<Text style={styles.empty}>No transactions found.</Text>}
+          ListEmptyComponent={
+            txError
+              ? <Text style={[styles.empty, { color: '#c62828' }]}>{txError}</Text>
+              : <Text style={styles.empty}>No transactions found.</Text>
+          }
         />
       )}
     </View>
@@ -356,7 +471,7 @@ export default function ProfileScreen({ navigation }) {
             style={[styles.tabItem, activeTab === tab && styles.tabItemActive]}
             onPress={() => { setActiveTab(tab); setEditing(false); }}
           >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]} numberOfLines={1} adjustsFontSizeToFit>{tab}</Text>
+            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -406,11 +521,11 @@ const styles = StyleSheet.create({
   },
   tabItemActive: { borderBottomColor: '#1a73e8' },
   tabText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: '#888',
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.2,
   },
   tabTextActive: { color: '#1a73e8' },
   tabContent: { flex: 1 },
@@ -466,7 +581,7 @@ const styles = StyleSheet.create({
   editBtnText: { color: '#1a73e8', fontWeight: '600', fontSize: 16 },
   signOutBtn: {
     marginHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 8,
     padding: 16,
     backgroundColor: 'white',
     borderRadius: 10,
@@ -475,6 +590,13 @@ const styles = StyleSheet.create({
     borderColor: '#e53935',
   },
   signOutText: { color: '#e53935', fontWeight: '600', fontSize: 16 },
+  deleteAccountBtn: {
+    marginHorizontal: 16,
+    marginBottom: 32,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  deleteAccountText: { color: '#aaa', fontSize: 13, textDecorationLine: 'underline' },
 
   actionBtn: { flex: 1, padding: 14, borderRadius: 10, alignItems: 'center' },
   cancelBtn: { backgroundColor: 'white', borderWidth: 1.5, borderColor: '#ccc' },

@@ -1,42 +1,102 @@
-import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator, TouchableOpacity, RefreshControl, useWindowDimensions } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
+import { useEffect, useState, useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import BarcodeDisplay from '../components/BarcodeDisplay';
 import { useAuth } from '../AuthContext';
 import { getMemberProfile } from '../api';
 import { recordError } from '../crashlytics';
+import analytics from '../analytics';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 export default function MyCardScreen() {
   const { customerId } = useAuth();
   const insets = useSafeAreaInsets();
   const { isWide } = useBreakpoint();
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
   const [cardNumber, setCardNumber] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [mode, setMode] = useState('barcode');
 
+  useEffect(() => { analytics.screen('MyCard'); }, []);
+
   useEffect(() => {
+    ScreenOrientation.unlockAsync();
+    return () => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    };
+  }, []);
+
+  const fetchCard = useCallback(async (isRefresh = false) => {
     if (!customerId) { setLoading(false); return; }
-    getMemberProfile(customerId)
-      .then(result => {
-        const profile = Array.isArray(result) ? result[0] : result;
-        setCardNumber(profile?.CARD_NUMBER ? String(profile.CARD_NUMBER) : null);
-      })
-      .catch(err => { recordError(err); setCardNumber(null); })
-      .finally(() => setLoading(false));
+    try {
+      // On first load, show cached value immediately while fetching
+      if (!isRefresh) {
+        const cached = await AsyncStorage.getItem(`cached_card_${customerId}`);
+        if (cached) { setCardNumber(cached); setLoading(false); }
+      }
+      const result = await getMemberProfile(customerId);
+      const profile = Array.isArray(result) ? result[0] : result;
+      const fresh = profile?.CARD_NUMBER ? String(profile.CARD_NUMBER) : null;
+      if (fresh) {
+        setCardNumber(fresh);
+        await AsyncStorage.setItem(`cached_card_${customerId}`, fresh);
+      }
+    } catch (err) {
+      recordError(err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [customerId]);
 
-  return (
-    <ScrollView contentContainerStyle={[styles.container, isWide && styles.containerWide]}>
+  useEffect(() => { fetchCard(); }, [fetchCard]);
 
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 16 }, isWide && styles.headerWide]}>
-        <Text style={styles.headerLabel}>MY CARD</Text>
-      </View>
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchCard(true);
+  }, [fetchCard]);
+
+  return (
+    <ScrollView
+      contentContainerStyle={[styles.container, isWide && styles.containerWide]}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
+
+      {/* Header — hidden in landscape to maximise scan area */}
+      {!isLandscape && (
+        <View style={[styles.header, { paddingTop: insets.top + 16 }, isWide && styles.headerWide]}>
+          <Text style={styles.headerLabel}>MY CARD</Text>
+        </View>
+      )}
 
       {/* Card */}
-      <View style={[styles.card, isWide && styles.cardWide]}>
+      <View style={[styles.card, isWide && styles.cardWide, isLandscape && styles.cardLandscape]}>
+        {/* Rotate button */}
+        <TouchableOpacity
+          style={styles.rotateBtn}
+          onPress={() => {
+            if (isLandscape) {
+              ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+            } else {
+              ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+            }
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+            {isLandscape
+              ? <Path d="M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42-.39-.39-1.02-.39-1.41 0l-6.59 6.59c-.39.39-.39 1.02 0 1.41l6.59 6.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" fill="#1a2a4a" opacity="0.4" />
+              : <Path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#1a2a4a" opacity="0.4" />
+            }
+          </Svg>
+        </TouchableOpacity>
+
         <View style={styles.cardInner}>
           <Image source={require('../assets/logo.png')} style={[styles.logo, isWide && styles.logoWide]} resizeMode="contain" />
 
@@ -47,12 +107,12 @@ export default function MyCardScreen() {
               {mode === 'barcode' ? (
                 <BarcodeDisplay
                   value={cardNumber}
-                  width={isWide ? 2 : 1.5}
-                  height={80}
-                  maxWidth={isWide ? 360 : 280}
+                  width={isLandscape ? 2.5 : isWide ? 2 : 1.5}
+                  height={isLandscape ? 100 : 80}
+                  maxWidth={isLandscape ? width * 0.7 : isWide ? 360 : 280}
                 />
               ) : (
-                <QRCode value={cardNumber} size={isWide ? 220 : 180} />
+                <QRCode value={cardNumber} size={isLandscape ? 180 : isWide ? 220 : 180} />
               )}
               <Text style={styles.cardNumber} numberOfLines={1} adjustsFontSizeToFit>{cardNumber}</Text>
             </>
@@ -81,7 +141,9 @@ export default function MyCardScreen() {
         </View>
       )}
 
-      <Text style={styles.hint}>Show this number to earn and redeem points.</Text>
+      {cardNumber && (
+        <Text style={styles.hint}>Show this number to earn and redeem points.</Text>
+      )}
 
     </ScrollView>
   );
@@ -126,6 +188,18 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 520,
     marginTop: 0,
+  },
+  cardLandscape: {
+    width: '90%',
+    maxWidth: 700,
+    marginTop: 12,
+  },
+  rotateBtn: {
+    position: 'absolute',
+    top: 10,
+    right: 12,
+    zIndex: 10,
+    padding: 6,
   },
   cardInner: {
     padding: 32,

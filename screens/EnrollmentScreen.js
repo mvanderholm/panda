@@ -50,6 +50,7 @@ export default function EnrollmentScreen({ navigation }) {
   const { isWide } = useBreakpoint();
 
   useEffect(() => {
+    analytics.screen('Enrollment');
     analytics.track('SignupStarted');
   }, []);
 
@@ -114,6 +115,7 @@ export default function EnrollmentScreen({ navigation }) {
     const digits = digitsOnly(phone);
     if (!digits) errs.phone = 'Phone number is required.';
     else if (digits.length < 10) errs.phone = 'Please enter a valid 10-digit phone number.';
+    if (zip.trim() && !/^\d{5}(-\d{4})?$/.test(zip.trim())) errs.zip = 'Enter a valid ZIP code (e.g. 12345).';
     return errs;
   };
 
@@ -212,7 +214,7 @@ export default function EnrollmentScreen({ navigation }) {
   // --- Multi-step form ---
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={[styles.innerWrap, isWide && styles.innerWrapWide]}>
 
@@ -383,15 +385,16 @@ export default function EnrollmentScreen({ navigation }) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.label}>ZIP code</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, errors.zip && styles.inputError]}
                   placeholder="ZIP"
                   placeholderTextColor="#9ca3af"
                   value={zip}
-                  onChangeText={setZip}
+                  onChangeText={v => { setZip(v); clearError('zip'); }}
                   keyboardType="number-pad"
                   maxLength={10}
                   accessibilityLabel="ZIP code"
                 />
+                {errors.zip && <Text style={styles.errorText}>{errors.zip}</Text>}
               </View>
             </View>
           </>

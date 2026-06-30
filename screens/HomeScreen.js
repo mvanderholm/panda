@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../AuthContext';
 import { apiFetch } from '../api';
 import { recordError } from '../crashlytics';
+import analytics from '../analytics';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 const NAV_ITEMS = [
@@ -21,9 +22,11 @@ export default function HomeScreen({ navigation }) {
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => { analytics.screen('Home'); }, []);
+
   useEffect(() => {
     if (!customerId) return;
-    apiFetch('GetMemberProfile', { CustomerId: customerId, platformtype: 2 })
+    apiFetch('GetMemberProfile', { CustomerID: customerId, platformtype: 2 })
       .then(data => {
         setMember(data[0]);
         setLoading(false);
@@ -31,7 +34,7 @@ export default function HomeScreen({ navigation }) {
       .catch(err => { recordError(err); setLoading(false); });
   }, [customerId]);
 
-  const firstName = member?.FIRST || user?.email?.split('@')[0] || 'Member';
+  const firstName = member?.FIRST || user?.split('@')[0] || 'Member';
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, isWide && styles.contentWide]}>

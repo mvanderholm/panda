@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
-import { View, Text, FlatList, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { View, Text, FlatList, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Image, RefreshControl } from 'react-native';
 import { apiFetch } from '../api';
 import { recordError } from '../crashlytics';
+import analytics from '../analytics';
 import { useAuth } from '../AuthContext';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import MerchantFilterChips from '../components/MerchantFilterChips';
 
 const CAMPAIGN_COLORS = {
   'New Merchant Welcome': { bg: '#e8f5e9', border: '#c8e6c9', badge: '#2e7d32' },
@@ -23,14 +25,32 @@ export default function RewardsScreen({ navigation }) {
   const { isWide, isDesktop } = useBreakpoint();
   const [rewards, setRewards] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [filterMerchant, setFilterMerchant] = useState(null);
+
+  useEffect(() => { analytics.screen('Rewards'); }, []);
+
+  const loadData = useCallback(async () => {
+    if (!customerId) return;
+    try {
+      const data = await apiFetch('MemberRewards', { CustomerId: customerId, platformtype: 2 });
+      setRewards(data);
+      setError('');
+    } catch (err) {
+      recordError(err);
+      setError(err.message);
+    }
+  }, [customerId]);
 
   useEffect(() => {
-    if (!customerId) return;
-    apiFetch('MemberRewards', { CustomerId: customerId, platformtype: 2 })
-      .then(data => { setRewards(data); setLoading(false); })
-      .catch(err => { recordError(err); setError(err.message); setLoading(false); });
-  }, [customerId]);
+    loadData().finally(() => setLoading(false));
+  }, [loadData]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadData().finally(() => setRefreshing(false));
+  }, [loadData]);
 
   if (loading) return (
     <View style={styles.centered}><ActivityIndicator size="large" color="#1a73e8" /></View>
@@ -47,7 +67,12 @@ export default function RewardsScreen({ navigation }) {
     return acc;
   }, {});
 
-  const groups = Object.values(grouped);
+  const allGroups = Object.values(grouped);
+  const merchantChips = useMemo(
+    () => allGroups.map(g => ({ id: g.merchantId, name: g.name })).sort((a, b) => a.name.localeCompare(b.name)),
+    [rewards]
+  );
+  const groups = filterMerchant ? allGroups.filter(g => g.merchantId === filterMerchant) : allGroups;
   const numColumns = isDesktop ? 3 : isWide ? 2 : 1;
 
   if (groups.length === 0) return (
@@ -76,7 +101,7 @@ export default function RewardsScreen({ navigation }) {
               {reward.CAMPAIGNTYPE}
             </Text>
             <Text style={[styles.expireDays, { color: daysColor(reward.EXPIREDAYS) }]}>
-              ⏱ {reward.EXPIREDAYS} days
+              {reward.EXPIREDAYS <= 0 ? 'Expired' : `⏱ ${reward.EXPIREDAYS} days`}
             </Text>
           </View>
         </View>
@@ -113,11 +138,16 @@ export default function RewardsScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={[styles.subtitle, isWide && styles.subtitleWide]}>
-        {rewards.length} rewards available
+        {groups.reduce((n, g) => n + g.rewards.length, 0)} reward{groups.reduce((n, g) => n + g.rewards.length, 0) !== 1 ? 's' : ''} available
       </Text>
 
+      <MerchantFilterChips merchants={merchantChips} selected={filterMerchant} onChange={setFilterMerchant} />
+
       {isWide ? (
-        <ScrollView contentContainerStyle={[styles.gridOuter, isWide && styles.gridOuterWide]}>
+        <ScrollView
+          contentContainerStyle={[styles.gridOuter, isWide && styles.gridOuterWide, { paddingHorizontal: 16 }]}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
           <View style={[styles.groupGrid, { gap: 16 }]}>
             {groups.map(group => (
               <View key={group.name} style={{ width: `${100 / numColumns}%`, paddingHorizontal: 4 }}>
@@ -131,7 +161,8 @@ export default function RewardsScreen({ navigation }) {
           data={groups}
           keyExtractor={item => String(item.merchantId)}
           renderItem={({ item }) => <MerchantGroup group={item} />}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />
       )}
     </View>
@@ -139,13 +170,13 @@ export default function RewardsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f6f9', padding: 16 },
+  container: { flex: 1, backgroundColor: '#f4f6f9' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: 'red' },
 
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#1a2a4a', marginBottom: 8 },
   emptyBody: { fontSize: 14, color: '#888', textAlign: 'center', paddingHorizontal: 32, lineHeight: 22 },
-  subtitle: { color: '#666', fontSize: 14, marginBottom: 10 },
+  subtitle: { color: '#666', fontSize: 14, paddingHorizontal: 16, paddingTop: 12 },
   subtitleWide: { maxWidth: 1200, alignSelf: 'center', width: '100%' },
 
   gridOuter: { paddingBottom: 20 },

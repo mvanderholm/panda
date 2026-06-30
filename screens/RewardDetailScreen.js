@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import analytics from '../analytics';
 
 const CAMPAIGN_COLORS = {
   'New Merchant Welcome': { bg: '#e8f5e9', border: '#c8e6c9', badge: '#2e7d32' },
@@ -17,6 +19,8 @@ function daysColor(days) {
 export default function RewardDetailScreen({ route, navigation }) {
   const { reward } = route.params;
   const { isWide } = useBreakpoint();
+
+  useEffect(() => { analytics.screen('RewardDetail'); }, []);
   const colors = CAMPAIGN_COLORS[reward.CAMPAIGNTYPE] || { bg: '#f5f5f5', border: '#e0e0e0', badge: '#555' };
 
   const merchantSection = (

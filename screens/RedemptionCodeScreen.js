@@ -1,13 +1,37 @@
+import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as StoreReview from 'expo-store-review';
 import QRCode from 'react-native-qrcode-svg';
 import BarcodeDisplay from '../components/BarcodeDisplay';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import analytics from '../analytics';
 
 export default function RedemptionCodeScreen({ route }) {
   const { reward } = route.params;
   const { isWide } = useBreakpoint();
   const [mode, setMode] = useState('barcode');
+
+  useEffect(() => {
+    analytics.screen('RedemptionCode');
+
+    const maybeRequestReview = async () => {
+      try {
+        const [prompted, launchDate, available] = await Promise.all([
+          AsyncStorage.getItem('rating_prompted'),
+          AsyncStorage.getItem('first_launch_date'),
+          StoreReview.isAvailableAsync(),
+        ]);
+        if (prompted || !available || !launchDate) return;
+        const daysSinceLaunch = (Date.now() - Number(launchDate)) / (1000 * 60 * 60 * 24);
+        if (daysSinceLaunch >= 3) {
+          await AsyncStorage.setItem('rating_prompted', 'true');
+          setTimeout(() => StoreReview.requestReview(), 2000);
+        }
+      } catch (_) {}
+    };
+    maybeRequestReview();
+  }, []);
   const codeValue = reward.DETAIL_ID != null ? String(reward.DETAIL_ID).replace(/\D/g, '') : '';
 
   if (!codeValue) return (
